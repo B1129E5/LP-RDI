@@ -1,6 +1,6 @@
 # Deploy RDI into Automation Account
 
-##Create an Application
+## Create an Application
 
 1. Install Microsoft.Graph Module
 ```powershell
