@@ -67,25 +67,22 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
 ## Create the Automation Account
 1. In the Azure Portal (https://portal.azure.com) search Automation Account
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image03.png)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image03.png)
 
 2. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
-3. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+1. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
+2. Create a PowerShell Runbook
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
-4. Create a PowerShell Runbook
+3. Name the Runbook and choose PowerShell 7.2
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
-
-5. Name the Runbook and choose PowerShell 7.2
-
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
-
-6. Copy/paste the PowerShell code of RBI-AA
+4. Copy/paste the PowerShell code of RBI-AA
 
 Don’t forget to set:
 -	$tenantId (ligne 982)
