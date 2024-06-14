@@ -15,6 +15,8 @@ Connect-MgGraph -Scopes 'Application.ReadWrite.All'
 If the following windows is showing up, click Accept
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image16.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image17.png)
+
 
 ```powershell
 $RDIAppID=New-MgApplication -DisplayName 'RDIApp' 
