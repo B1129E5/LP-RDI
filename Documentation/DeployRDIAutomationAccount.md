@@ -58,8 +58,7 @@ $cert = New-SelfSignedCertificate -CertStoreLocation "cert:\CurrentUser\My" `
 $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData()) 
 
 ```
-
-![alt text](https://github.com/nlepagnez/ESI-PublicContent/blob/main/Documentations/Images/Image01.png "Connector Deployment")
+![alt text](https://github.com/B1129E5/LP-RDI/tree/main/Documentation/Images/Image01.png)
 
 
 
