@@ -11,11 +11,13 @@ Install-Module Microsoft.Graph -Scope AllUsers
 ```powershell
 Connect-MgGraph -Scopes 'Application.ReadWrite.All'
 ```
+If asked, ender your credentials
+
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image17.png)
 
 If the following windows is showing up, click Accept
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image16.png)
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image17.png)
 
 
 ```powershell
