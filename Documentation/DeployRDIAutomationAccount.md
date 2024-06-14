@@ -62,7 +62,7 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
 
 2. Import it in your App
-3. 
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image02.png)
 
 ## Create the Automation Account
