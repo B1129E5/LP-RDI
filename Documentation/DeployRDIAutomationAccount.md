@@ -74,15 +74,19 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
+
 3. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
+
 4. Create a PowerShell Runbook
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
+
 5. Name the Runbook and choose PowerShell 7.2
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
+
 6. Copy/paste the PowerShell code of RBI-AA
 
 Don’t forget to set:
@@ -97,12 +101,15 @@ It’s your ID of Log Analytic
 It’s your key of your Log Analytic
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
+
 7. Click on Publish button
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
+
 8. Go to Module
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
+
 9. Install the AZ Module to import Module by PowerShell
 
 ```powershell
@@ -121,16 +128,20 @@ foreach ($aaModule in $AAModules) {
 11. Check the availability. This can take some minutes !
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image12.png)
+
 12. You can schedule the script execution. Click on the run book and add a schedule.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image13.png)
+
 13. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image14.png)
 
+
 ## If you want to use Managed Identity
 1. Go to the AA and note the ID of the Managed Identity
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image15.png)
+
 2. Install Microsoft.Graph Module
 Execute these PowerShell commands to set permissions
 Change < Managed Identity ID> by your Managed Identity ID
