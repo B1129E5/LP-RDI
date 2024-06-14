@@ -73,16 +73,16 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
-1. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+3. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
-2. Create a PowerShell Runbook
+4. Create a PowerShell Runbook
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
-3. Name the Runbook and choose PowerShell 7.2
+5. Name the Runbook and choose PowerShell 7.2
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
 
-4. Copy/paste the PowerShell code of RBI-AA
+6. Copy/paste the PowerShell code of RBI-AA
 
 Don’t forget to set:
 -	$tenantId (ligne 982)
