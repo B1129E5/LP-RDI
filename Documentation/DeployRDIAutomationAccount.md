@@ -73,7 +73,8 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
-3. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+3. Depending of your network needs/requirements, choosea Public or private access (private access is more secure but more complex to deploy)
+
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
 4. Create a PowerShell Runbook
