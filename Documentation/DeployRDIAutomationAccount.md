@@ -62,6 +62,7 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
 
 2. Import it in your App
+3. 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image02.png)
 
 ## Create the Automation Account
@@ -69,13 +70,18 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image03.png)
 
 2. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged.
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 3. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 4. Create a PowerShell Runbook
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 5. Name the Runbook and choose PowerShell 7.2
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
 6. Copy/paste the PowerShell code of RBI-AA
 
@@ -89,16 +95,20 @@ It’s your App Secret
 It’s your ID of Log Analytic
 -	$Sharekey (line 1004)
 It’s your key of your Log Analytic
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
 7. Click on Publish button
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
 8. Go to Module
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
 9. Install the AZ Module to import Module by PowerShell
+
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-10. Execute these PowerShell Commands with PowerShell 5.1
+10.  Execute these PowerShell Commands with PowerShell 5.1
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
@@ -109,10 +119,13 @@ foreach ($aaModule in $AAModules) {
 }
 ```
 11. Check the availability. This can take some minutes !
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image12.png)
 12. You can schedule the script execution. Click on the run book and add a schedule.
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image13.png)
 13. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image14.png)
 
 ## If you want to use Managed Identity
