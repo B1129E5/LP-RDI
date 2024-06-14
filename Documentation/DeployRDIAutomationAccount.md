@@ -59,11 +59,11 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
 ```
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
 
 2. Import it in your App
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image02.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image02.png)
 
 ## Create the Automation Account
 1. In the Azure Portal (https://portal.azure.com) search Automation Account
