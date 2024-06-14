@@ -58,7 +58,7 @@ $cert = New-SelfSignedCertificate -CertStoreLocation "cert:\CurrentUser\My" `
 $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData()) 
 
 ```
-![alt text](https://github.com/B1129E5/LP-RDI/tree/main/Documentation/Images/Image01.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
 
 
 
