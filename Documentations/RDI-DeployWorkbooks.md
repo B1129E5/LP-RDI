@@ -13,11 +13,11 @@ Connect-MgGraph -Scopes 'Application.ReadWrite.All'
 ```
 If asked, enter your credentials
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image17.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image17.png)
 
 If the following windows is showing up, click Accept
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image18.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image18.png)
 
 
 ```powershell
@@ -61,44 +61,44 @@ $secret.SecretText
 
 ## Create the Automation Account
 1. In the Azure Portal (https://portal.azure.com) search Automation Account
-   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image03.png)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image03.png)
 2. Click on **Create**
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image19.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image19.png)
 
 1. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged and click Next
-   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image04.png)
 2. Check **System Assigned** and click **Next**
 
-   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
+   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image05.png)
 
 3. Depending of your network needs/requirements, choose **Public Access** or **Private access** (private access is more secure but more complex to deploy)
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image06.png)
 
 4. Click **Review + Create**
 5. Click **Create**
 6. Once the Azure Automation account is created, click on **Go to resource**
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image20.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image20.png)
 7. To create the Runbok, two options
    1. In the Overview page Click **Create a Runbook**
 
-  ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
+  ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image21.png)
   2. In **Process Automation**, select **Runbook** and **Create**
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image07.png)
 
 8. **Name** the Runbook 
 9. In Runbook Type, choose **PowerShell**
 10. Two options
    1. In **Runtime version**, choose **7.2**
 
-    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image08.png)
 
    2. In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
-    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image22.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image22.png)
 
-      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
+      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image23.png)
 
 11.  Click **Review +  Create** and **Create**
 12.  Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the **Scripts** folder
@@ -114,7 +114,7 @@ $ClientID (ligne 987)
 It’s the App ID
 ```
 You can find the App ID here
-    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image24.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image24.png)
 
 ```powershell
 $spPassword (ligne 988)
@@ -129,24 +129,24 @@ It’s your key of your Log Analytic
 
 Both information can be find, here
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image25.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image25.png)
 
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
 
 13.  Click on **Publish** button and click **Yes**
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image10.png)
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image27.png)
 
 
 1.  To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
      1. In **Shared Resources**, select to **Module**
 
-      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
+      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image11.png)
      2. In **Process Automation**, select **Runtime Environments (Preview)**
-    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image28.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image28.png)
 
     List of excepted Modules :
 
@@ -169,20 +169,20 @@ foreach ($aaModule in $AAModules) {
 ```
 17. Check the availability. This can take some minutes !
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image12.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image12.png)
 
 18. You can schedule the script execution. Click on the run book and add a schedule.
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image13.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image13.png)
 
 19. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image14.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image14.png)
 
 
 ## If you want to use Managed Identity
 1. Go to the AA and note the ID of the Managed Identity
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image15.png)
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image15.png)
 
 2. Install Microsoft.Graph Module
 Execute these PowerShell commands to set permissions
