@@ -58,38 +58,21 @@ $secret.SecretText
 
 ```
 
-## Create an auto signed certificate for the App
-1. Execute these following commands to generate an autosigned certificate for the App (needed if you use RDI stand alone)
-
-
-```powershell
-$cert = New-SelfSignedCertificate -CertStoreLocation "cert:\CurrentUser\My" `
-  -Subject "CN=MSGraph_RDIApps" `
-  -KeySpec KeyExchange `
-  -KeyLength 2048
-$keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData()) 
-
-```
-
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
-
-2. Import it in your App
-
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image02.png)
 
 ## Create the Automation Account
 1. In the Azure Portal (https://portal.azure.com) search Automation Account
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image03.png)
-2. Click on Create
+2. Click on **Create**
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image19.png)
 
-3. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged and click Next
+1. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged and click Next
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
-4. Check **System Assigned** and click **Next**
+2. Check **System Assigned** and click **Next**
 
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
-5. Depending of your network needs/requirements, choose **Public Access** or **Private access** (private access is more secure but more complex to deploy)
+3. Depending of your network needs/requirements, choose **Public Access** or **Private access** (private access is more secure but more complex to deploy)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
@@ -100,7 +83,7 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 7. In the Overview page Click **Create a Runbook** or in **Process Automation**, select **Runbook** and **Create**
 
   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
-
+Option 2 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
 7. Name the Runbook 
@@ -146,16 +129,16 @@ Both information can be find, here
 12. Click on **Publish** button and click **Yes**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
-1. Close the Runbook blade to go back to the Azure Automation Account. Go to Module
+13. check if the module are installed. Close the Runbook blade to go back to the Azure Automation Account. Go to Module
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
 
-14. Install the AZ Module to import Module by PowerShell
+15. Install the AZ Module to import Module by PowerShell
 
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-15.  Execute these PowerShell Commands with PowerShell 5.1
+16.  Execute these PowerShell Commands with PowerShell 5.1
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
@@ -165,15 +148,15 @@ foreach ($aaModule in $AAModules) {
     New-AzAutomationModule -AutomationAccountName 'wzaa-RDI' -ResourceGroupName 'RG-T0-OpsWE' -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion" -RuntimeVersion 7.2
 }
 ```
-16. Check the availability. This can take some minutes !
+17. Check the availability. This can take some minutes !
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image12.png)
 
-17. You can schedule the script execution. Click on the run book and add a schedule.
+18. You can schedule the script execution. Click on the run book and add a schedule.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image13.png)
 
-18. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
+19. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image14.png)
 
