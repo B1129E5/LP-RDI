@@ -109,11 +109,11 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
    1. In **Runtime version**, choose **7.2**
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
-    
+
    2. In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image22.png)
 
-    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
+      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
 
 10. Click **Review +  Create** and **Create**
 11. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the script folder of this github
