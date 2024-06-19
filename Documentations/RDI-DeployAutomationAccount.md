@@ -92,8 +92,10 @@ $secret.SecretText
 9. In Runbook Type, choose **PowerShell**
 10. Two options
    1. In **Runtime version**, choose **7.2**
+
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image08.png)
    2. In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
+
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image22.png)
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image23.png)
