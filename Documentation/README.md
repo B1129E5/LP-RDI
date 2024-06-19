@@ -12,3 +12,6 @@ https://github.com/B1129E5/LP-RDI/blob/main/Documentation/DeployRDIAutomationAcc
 
 ## How to run the script using an On-Premises Administrative workstation
 https://github.com/B1129E5/LP-RDI/blob/main/Documentation/DeployRDIOnPrem.md
+
+## How to deploy Woorkbooks
+https://github.com/B1129E5/LP-RDI/blob/main/Documentation/DeployWorkbooks.md
