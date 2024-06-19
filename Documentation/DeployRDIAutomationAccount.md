@@ -11,7 +11,7 @@ Install-Module Microsoft.Graph -Scope AllUsers
 ```powershell
 Connect-MgGraph -Scopes 'Application.ReadWrite.All'
 ```
-If asked, ender your credentials
+If asked, enter your credentials
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image17.png)
 
@@ -21,21 +21,22 @@ If the following windows is showing up, click Accept
 
 
 ```powershell
-$RDIAppID=New-MgApplication -DisplayName 'RDIApp' 
+$RDIAppID=New-MgApplication -DisplayName 'RDIApp'
 $SPID=New-MgServicePrincipal -AppId $RDIAppID.AppId
-
+ 
 $Scopes=$null
 $Scopes="38d9df27-64da-44fd-b7c5-a6fbac20248f","
 bf394140-e372-4bf9-a898-299cfc7564e5","4cdc2547-9148-4295-8d11-be0db1391d6b","7ab1d382-f21e-4acd-a863-ba3e13f7da61","c7fbd983-d9aa-4fa7-84b8-17382c103bc4","dc5007c0-2d7d-4c42-879c-2dab87571379","498476ce-e0fe-48b0-b801-37ba7e2685c6","6e472fd1-ad78-48da-a0f0-97ab2c6b769e","b0afded3-3588-46d8-8b3d-9842eff778da","246dd0d5-5bd0-4def-940b-0421030a5b68","edb419d6-7edc-42a3-9345-509bfdf5d87c","9a5d68dd-52b0-4cc2-bd40-abcf44ac3a30"
-
+ 
+$AppMsGraphId=(Get-MgServicePrincipal -Filter "DisplayName eq 'Microsoft Graph'").Id
+ 
 foreach ($scope in $scopes) {
   $params = @{
     "PrincipalId" =$spid.Id
-    "ResourceId" = "c8650178-33df-4d58-a998-91691f6bb421"
+    "ResourceId" =$AppMsGraphId
     "AppRoleId" = $scope
   }
-  
-  New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId "c8650178-33df-4d58-a998-91691f6bb421" -BodyParameter $params | 
+  New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $AppMsGraphId -BodyParameter $params |
     Format-List Id, AppRoleId, CreatedDateTime, PrincipalDisplayName, PrincipalId, PrincipalType, ResourceDisplayName
 }
 ```
