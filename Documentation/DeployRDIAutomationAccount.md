@@ -98,7 +98,8 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 6. Once the Azure Automation account is created, click on **Go to resource**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image20.png)
 7. In the Overview page Click **Create a Runbook** or in **Process Automation**, select **Runbook** and **Create**
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
+
+  ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
@@ -107,7 +108,8 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 9. Two options
    1. In **Runtime version**, choose **7.2**
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
+    
    2. In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image22.png)
 
