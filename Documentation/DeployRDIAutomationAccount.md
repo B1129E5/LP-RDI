@@ -135,13 +135,15 @@ Both information can be find, here
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
 
 13.  Click on **Publish** button and click **Yes**
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
-14.  To check if required modules are installed. Close the Runbook blade to go back to the Azure Automation Account. Two options depending of the GUI Experience you Choose
+14.   To check if required modules are installed. Close the Runbook blade to go back to the Azure Automation Account. Two options depending of the GUI Experience you Choose
      1.   In **Shared Resources**, select to **Module**
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
-    2. In **Process Automation**, select **Runtime Environments (Preview)**
+    1. In **Process Automation**, select **Runtime Environments (Preview)**
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image28.png)
 
     List of excepted Modules :
