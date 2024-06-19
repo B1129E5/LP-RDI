@@ -86,6 +86,7 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 3. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged and click Next
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
 4. Check System and click Next
+
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
 5. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
@@ -122,12 +123,12 @@ It’s the App ID
 You can find this information here
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image24.png)
 
--	$spPassword (ligne 988)
+-$spPassword (ligne 988)
 It’s your App Secret, you retrieved in the previous step
 
--	$CustomerID (line 1002)
+-$CustomerID (line 1002)
 It’s your ID of Log Analytic
--	$Sharekey (line 1004)
+-$Sharekey (line 1004)
 It’s your key of your Log Analytic
 
 
