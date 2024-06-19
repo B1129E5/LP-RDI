@@ -155,7 +155,12 @@ Both information can be find, here
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-16.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account and the name of the resource goup where the accound is located**
+16.  Connect to Azure 
+
+```powershell
+Connect-AzAccount 
+```
+17.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account and the name of the resource goup where the accound is located**
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
