@@ -5,7 +5,7 @@ This gitHub is dedicated to the solution Least Privileges - Review, Design and I
 Blablbalbal
 
 ## Documentations
-The  [**Documentations**](https://github.com/B1129E5/LP-RDI/tree/main/Documentation) folder list all the documentations that will help you:
+The  [**Documentations**](https://github.com/B1129E5/LP-RDI/tree/main/Documentations) folder list all the documentations that will help you:
     - Understand how the solution works
     - Deploy the solution
 
