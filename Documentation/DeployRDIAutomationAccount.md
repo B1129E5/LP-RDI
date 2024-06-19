@@ -141,7 +141,7 @@ Both information can be find, here
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
 
 
-14. To check if required modules are installed. Close the Runbook blade to go back to the Azure Automation Account. Two options depending of the GUI Experience you Choose
+1.  To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
      1. In **Shared Resources**, select to **Module**
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
