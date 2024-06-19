@@ -85,44 +85,46 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
 3. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged and click Next
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
-4. Check System and click Next
+4. Check **System Assigned** and click **Next**
 
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
-5. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+5. Depending of your network needs/requirements, choose **Public Access** or **Private access** (private access is more secure but more complex to deploy)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
-4. Click Review + Create. 
-5. Click Create
-6. Once the Azure Automation account is created, click on Go to resource
+4. Click **Review + Create **
+5. Click **Create**
+6. Once the Azure Automation account is created, click on **Go to resource**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image20.png)
-7. In the Overview page Click Create a Runbook or in Process Automation, select Runbook and Create
+7. In the Overview page Click **Create a Runbook** or in **Process Automation**, select **Runbook** and **Create**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
 7. Name the Runbook 
-8. In Runbook Type, choose PowerShell
+8. In Runbook Type, choose **PowerShell**
 9. Two options
-   1. In Runtime version, choose 7.2.
+   1. In **Runtime version**, choose **7.2**
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
-   2. In Runtime Environment, choose Select from existing and select Powershell 7-2
+   2. In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image22.png)
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
 
-10. Click Review + Create and Create
+10. Click **Review + Create **and **Create**
 11. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the script folder of this github
 
 **Don’t forget to update the following value:**
+```powershell
 -	$tenantId (ligne 982)
 -	$ClientID (ligne 987)
 It’s the App ID
+```
 You can find this information here
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image24.png)
-
+```powershell
 -$spPassword (ligne 988)
 It’s your App Secret, you retrieved in the previous step
 
@@ -130,7 +132,7 @@ It’s your App Secret, you retrieved in the previous step
 It’s your ID of Log Analytic
 -$Sharekey (line 1004)
 It’s your key of your Log Analytic
-
+```
 
 Both information can be find, here
 
@@ -139,7 +141,7 @@ Both information can be find, here
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
 
-12. Click on Publish button and click Yes
+12. Click on **Publish** button and click **Yes**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
 1. Close the Runbook blade to go back to the Azure Automation Account. Go to Module
