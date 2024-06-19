@@ -93,7 +93,7 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
-4. Click **Review + Create **
+4. Click **Review + Create**
 5. Click **Create**
 6. Once the Azure Automation account is created, click on **Go to resource**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image20.png)
@@ -113,7 +113,7 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
 
-10. Click **Review + Create **and **Create**
+10. Click **Review +  Create** and **Create**
 11. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the script folder of this github
 
 **Don’t forget to update the following value:**
