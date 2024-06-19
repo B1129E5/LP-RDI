@@ -83,10 +83,10 @@ $secret.SecretText
 7. To create the Runbok, two options
    1. In the Overview page Click **Create a Runbook**
 
-  ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image21.png)
-  2. In **Process Automation**, select **Runbook** and **Create**
+      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image21.png)
+   2. In **Process Automation**, select **Runbook** and **Create**
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image07.png)
+      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image07.png)
 
 8. **Name** the Runbook 
 9. In Runbook Type, choose **PowerShell**
