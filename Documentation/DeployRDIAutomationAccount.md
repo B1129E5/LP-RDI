@@ -80,15 +80,17 @@ $secret.SecretText
 5. Click **Create**
 6. Once the Azure Automation account is created, click on **Go to resource**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image20.png)
-7. In the Overview page Click **Create a Runbook** or in **Process Automation**, select **Runbook** and **Create**
+7. To create the Runbok, two options
+   1. In the Overview page Click **Create a Runbook**
 
   ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
-Option 2 
+  2. In **Process Automation**, select **Runbook** and **Create**
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
-7. Name the Runbook 
-8. In Runbook Type, choose **PowerShell**
-9. Two options
+8. **Name** the Runbook 
+9. In Runbook Type, choose **PowerShell**
+10. Two options
    1. In **Runtime version**, choose **7.2**
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
@@ -98,24 +100,30 @@ Option 2
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
 
-10. Click **Review +  Create** and **Create**
-11. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the script folder of this github
+11.  Click **Review +  Create** and **Create**
+12.  Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the **Scripts** folder
+
+https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1
+
 
 **Don’t forget to update the following value:**
 ```powershell
--	$tenantId (ligne 982)
--	$ClientID (ligne 987)
+$tenantId (ligne 982)
+
+$ClientID (ligne 987)
 It’s the App ID
 ```
-You can find this information here
+You can find the App ID here
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image24.png)
+
 ```powershell
--$spPassword (ligne 988)
+$spPassword (ligne 988)
 It’s your App Secret, you retrieved in the previous step
 
--$CustomerID (line 1002)
-It’s your ID of Log Analytic
--$Sharekey (line 1004)
+$CustomerID (line 1002)
+It’s your Log Analytic ID
+
+$Sharekey (line 1004)
 It’s your key of your Log Analytic
 ```
 
@@ -126,26 +134,33 @@ Both information can be find, here
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
 
-12. Click on **Publish** button and click **Yes**
+13.  Click on **Publish** button and click **Yes**
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
-13. check if the module are installed. Close the Runbook blade to go back to the Azure Automation Account. Go to Module
+14.  To check if required modules are installed. Close the Runbook blade to go back to the Azure Automation Account. Two options depending of the GUI Experience you Choose
+     1.   In **Shared Resources**, select to **Module**
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
+      ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
+    2. In **Process Automation**, select **Runtime Environments (Preview)**
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image28.png)
 
-15. Install the AZ Module to import Module by PowerShell
+    List of excepted Modules :
+
+
+15. Go to back to Powershell on your administration workstation.
+16. If necessary, Install the AZ Module to import Module by PowerShell
 
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-16.  Execute these PowerShell Commands with PowerShell 5.1
+16.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account and the name of the resource goup where the accound is located**
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
 foreach ($aaModule in $AAModules) {
     $moduleName = $aaModule
     $moduleVersion = '2.19.0'
-    New-AzAutomationModule -AutomationAccountName 'wzaa-RDI' -ResourceGroupName 'RG-T0-OpsWE' -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion" -RuntimeVersion 7.2
+    New-AzAutomationModule -AutomationAccountName 'XXXXXX' -ResourceGroupName 'XXXX' -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion" -RuntimeVersion 7.2
 }
 ```
 17. Check the availability. This can take some minutes !
