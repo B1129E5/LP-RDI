@@ -42,7 +42,8 @@ foreach ($scope in $scopes) {
 ```
 
 ## Create a Secret for the App
-1. Execute these following commands to generate a secret (needed if you use RDI Automation script). Copy the $secret.SecretText, you need it for the RDI automation script.
+1. Execute these following commands to generate a secret (needed if you use RDI Automation script). 
+**Copy the result of $secret.SecretText in notepad, you'll need it for the RDI automation script.**
 
 ```powershell
 $appObjectId = $RDIAppID.Id
@@ -79,51 +80,77 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 ## Create the Automation Account
 1. In the Azure Portal (https://portal.azure.com) search Automation Account
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image03.png)
+2. Click on Create
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image19.png)
 
-2. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged
+3. Create the Automation Account with required information. Note: Due to permission sensitivity, this AA is Privileged and click Next
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image04.png)
+4. Check System and click Next
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image05.png)
 
-3. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
+5. Depending of your network needs/requirements, choose Public or private access (private access is more secure but more complex to deploy)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image06.png)
 
-4. Create a PowerShell Runbook
+4. Click Review + Create. 
+5. Click Create
+6. Once the Azure Automation account is created, click on Go to resource
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image20.png)
+7. In the Overview page Click Create a Runbook or in Process Automation, select Runbook and Create
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image21.png)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image07.png)
 
-5. Name the Runbook and choose PowerShell 7.2
+7. Name the Runbook 
+8. In Runbook Type, choose PowerShell
+9. Two options
+   1. In Runtime version, choose 7.2.
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image08.png)
+   2. In Runtime Environment, choose Select from existing and select Powershell 7-2
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image22.png)
 
-6. Copy/paste the PowerShell code of RBI-AA
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image23.png)
 
-Don’t forget to set:
+10. Click Review + Create and Create
+11. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the script folder of this github
+
+**Don’t forget to update the following value:**
 -	$tenantId (ligne 982)
 -	$ClientID (ligne 987)
 It’s the App ID
+You can find this information here
+    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image24.png)
+
 -	$spPassword (ligne 988)
-It’s your App Secret
+It’s your App Secret, you retrieved in the previous step
+
 -	$CustomerID (line 1002)
 It’s your ID of Log Analytic
 -	$Sharekey (line 1004)
 It’s your key of your Log Analytic
 
+
+Both information can be find, here
+
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image25.png)
+
+
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image09.png)
 
-7. Click on Publish button
-
+12. Click on Publish button and click Yes
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image10.png)
-
-8. Go to Module
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image27.png)
+1. Close the Runbook blade to go back to the Azure Automation Account. Go to Module
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image11.png)
 
-9. Install the AZ Module to import Module by PowerShell
+14. Install the AZ Module to import Module by PowerShell
 
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-10.  Execute these PowerShell Commands with PowerShell 5.1
+15.  Execute these PowerShell Commands with PowerShell 5.1
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
@@ -133,15 +160,15 @@ foreach ($aaModule in $AAModules) {
     New-AzAutomationModule -AutomationAccountName 'wzaa-RDI' -ResourceGroupName 'RG-T0-OpsWE' -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion" -RuntimeVersion 7.2
 }
 ```
-11. Check the availability. This can take some minutes !
+16. Check the availability. This can take some minutes !
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image12.png)
 
-12. You can schedule the script execution. Click on the run book and add a schedule.
+17. You can schedule the script execution. Click on the run book and add a schedule.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image13.png)
 
-13. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
+18. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image14.png)
 
