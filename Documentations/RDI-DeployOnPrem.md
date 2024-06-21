@@ -1,35 +1,15 @@
-Temp
-## Create an auto signed certificate for the App
-1. Execute these following commands to generate an autosigned certificate for the App (needed if you use RDI stand alone)
-
-
-```powershell
-$cert = New-SelfSignedCertificate -CertStoreLocation "cert:\CurrentUser\My" `
-  -Subject "CN=MSGraph_RDIApps" `
-  -KeySpec KeyExchange `
-  -KeyLength 2048
-$keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData()) 
-
-```
-
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image01.png)
-
-2. Import it in your App
-
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentation/Images/Image02.png)
-
-
-
 # Deploy RDI into Automation Account
 
 ## Create an Application
 
 1. Install Microsoft.Graph Module
+
 ```powershell
 Install-Module Microsoft.Graph -Scope AllUsers
 ```
 
-2. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
+1. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
+
 ```powershell
 Connect-MgGraph -Scopes 'Application.ReadWrite.All'
 ```
