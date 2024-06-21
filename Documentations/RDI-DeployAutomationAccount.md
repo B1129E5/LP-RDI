@@ -105,17 +105,14 @@ $secret.SecretText
 https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
+
 **Don’t forget to update the following value:**
 ```powershell
 $tenantId (ligne 982)
 
 $ClientID (ligne 987)
 It’s the App ID
-```
-You can find the App ID here
 
-
-```powershell
 $spPassword (ligne 988)
 It’s your App Secret, you retrieved in the previous step
 
@@ -130,12 +127,7 @@ AppID can be find, here
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image25.png)
 
-
-
-
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image24.png)
-
-13.  Click on **Publish** button and click **Yes**
+1.   Click on **Publish** button and click **Yes**
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image10.png)
 
