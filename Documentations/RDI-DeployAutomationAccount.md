@@ -91,10 +91,11 @@ $secret.SecretText
 8. **Name** the Runbook 
 9. In Runbook Type, choose **PowerShell**
 10. Two options
-   1. In **Runtime version**, choose **7.2**
+   1. Classic GUI : In **Runtime version**, choose **7.2**
+
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image08.png)
 
-   2. In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
+   2. New GUI : In **Runtime Environment**, choose **Select from existing** and select **Powershell 7-2**
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image22.png)
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image23.png)
 
@@ -103,7 +104,7 @@ $secret.SecretText
 
 https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1
 
-
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
 **Don’t forget to update the following value:**
 ```powershell
 $tenantId (ligne 982)
@@ -112,7 +113,7 @@ $ClientID (ligne 987)
 It’s the App ID
 ```
 You can find the App ID here
-    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image24.png)
+
 
 ```powershell
 $spPassword (ligne 988)
@@ -125,12 +126,14 @@ $Sharekey (line 1004)
 It’s your key of your Log Analytic
 ```
 
-Both information can be find, here
+AppID can be find, here
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image25.png)
 
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
+
+
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image24.png)
 
 13.  Click on **Publish** button and click **Yes**
 
