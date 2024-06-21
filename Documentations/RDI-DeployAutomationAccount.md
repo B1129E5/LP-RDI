@@ -123,9 +123,11 @@ $Sharekey (line 1004)
 It’s your key of your Log Analytic
 ```
 
-AppID can be find, here
+AppID can be found here :
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image25.png)
+Your Workspace and shared key can be found here :
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image26.png)
 
 1.   Click on **Publish** button and click **Yes**
 
