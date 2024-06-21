@@ -137,17 +137,38 @@ Your Workspace and shared key can be found here :
 
 
 1.  To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
-     1. In **Shared Resources**, select to **Module**
+ 2. Classic GUI : In **Shared Resources**, select to **Module**
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image11.png)
-     2. In **Process Automation**, select **Runtime Environments (Preview)**
+
+  3. New GUI : In **Process Automation**, select **Runtime Environments (Preview)**
+     1. Select Powershell 7.2
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image28.png)
 
-    List of excepted Modules :
+      List of excepted Modules :
+      * AZ
+      * Microsoft.Graph
+      * Microsoft.Graph.Authentication
+      * Microsoft.Graph.Users
+      * Microsoft.Graph.Applications
+      * Microsoft.Graph.Identity.DirectoryManagement
+      * Microsoft.Graph.Identity.SignIns
+      * Microsoft.Graph.DirectoryObjects
+      * Microsoft.Graph.Identity.Governance
+      * Microsoft.Graph.Groups
+      * Microsoft.Graph.Beta
+      * Microsoft.Graph.Beta.Authenticati
+      * Microsoft.Graph.Beta.Users
+      * Microsoft.Graph.Beta.Applications
+      * Microsoft.Graph.Beta.Identity.DirectoryManagement
+      * Microsoft.Graph.Beta.Identity.SignIns
+      * Microsoft.Graph.Beta.DirectoryObjects
+      * Microsoft.Graph.Beta.Identity.Governance
+      * Microsoft.Graph.Beta.Groups
 
-
-15. Go to back to Powershell on your administration workstation.
-16. If necessary, Install the AZ Module to import Module by PowerShell
+2.  If the module are not present
+3.  Go to back to Powershell on your administration workstation.
+4.  If necessary, Install the AZ Module to import Module by PowerShell
 
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
@@ -157,7 +178,7 @@ Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```powershell
 Connect-AzAccount 
 ```
-17.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account and the name of the resource goup where the accound is located**
+17.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account** and the name of the **resource goup** where the accound is located
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
