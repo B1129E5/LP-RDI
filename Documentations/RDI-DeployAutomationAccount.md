@@ -192,11 +192,12 @@ foreach ($aaModule in $AAModules) {
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image12.png)
 
-18. You can schedule the script execution. Click on the run book and add a schedule.
+18.  You can schedule the script execution. Click on **Runbook**, select you **Runbook** 
+19.  Click **Schedule** and click **add a schedule**
+20.  Complete all the step to create the schedule
 
-![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image13.png)
-
-19. You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image33.png)
+21.  You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image14.png)
 
