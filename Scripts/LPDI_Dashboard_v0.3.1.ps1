@@ -1115,16 +1115,16 @@ Function Post-DataToLogAnalytics($customerId, $sharedKey, $body, $logType, $Time
 }
 
 #Replace with your App ID
-$ClientID       = "95fd77b5-fd20-40cc-935d-0f7bee0b066b"
+$ClientID       = ""
 #Replace with your Certificat Name
 $Thumbprint     = (Get-ChildItem cert:\CurrentUser\My\ | Where-Object {$_.Subject -eq "CN=MSGraph_RDIApps" }).Thumbprint     
 #Replace with your Tenant ID
-$tenantId       = 'bd2564d4-3d6c-459d-8127-7bb6b93e0b99'
+$tenantId       = ''
 
 # Replace with your Workspace ID
-$CustomerId     = "3e3c2f3e-7820-4fce-a0a7-9da6713af647"  
+$CustomerId     = ""  
 # Replace with your Primary Key
-$SharedKey      = "CzIiuFR5T8RV4lCUxF4xvigmLcZjcpXMHlB++EqyEposKodLpc0Puc2z9sgvHv3vf+uHA5K8b/Zf5X8rP5LAuQ=="
+$SharedKey      = ""
 #$SharedKey      = $null
 
 #$TimeStampField = [DateTime]::UtcNow.ToString("r")
