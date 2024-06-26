@@ -1,5 +1,12 @@
 # Deploy RDI into Automation Account
 
+- [Deploy RDI into Automation Account](#deploy-rdi-into-automation-account)
+  - [Create an Application](#create-an-application)
+  - [Create a Secret for the App](#create-a-secret-for-the-app)
+  - [Create the Automation Account](#create-the-automation-account)
+  - [If you want to use Managed Identity](#if-you-want-to-use-managed-identity)
+
+
 ## Create an Application
 
 1. Install Microsoft.Graph Module

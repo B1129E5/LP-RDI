@@ -1,4 +1,7 @@
 # Run the RDI script OnPrem
+- [Run the RDI script OnPrem](#run-the-rdi-script-onprem)
+  - [Create an auto signed certificate for the App](#create-an-auto-signed-certificate-for-the-app)
+
 
  ## Create an auto signed certificate for the App
 1. Execute these following commands to generate an autosigned certificate for the App (needed if you use RDI stand alone)
