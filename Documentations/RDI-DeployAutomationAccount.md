@@ -7,7 +7,7 @@
   - [If you want to use Managed Identity](#if-you-want-to-use-managed-identity)
 
 
-## Create an Application
+## Create an App
 
 1. Install Microsoft.Graph Module
 ```powershell
