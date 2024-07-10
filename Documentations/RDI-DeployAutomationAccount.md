@@ -16,7 +16,7 @@ Install-Module Microsoft.Graph -Scope AllUsers
 
 2. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
 ```powershell
-Connect-MgGraph -Scopes 'Application.ReadWrite.All'
+ Connect-MgGraph -Scopes 'Application.ReadWrite.All', 'AppRoleAssignment.ReadWrite.All', 'Directory.Read.All'
 ```
 If asked, enter your credentials
 
