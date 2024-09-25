@@ -1,33 +1,42 @@
 
 - [Deploy RDI with a Manage Identity](#deploy-rdi-with-a-manage-identity)
-  - [Create an MI](#create-an-MI)
+  - [Create an MI](#create-an-mi)
+  - [Install Powershell 7.x & MS Graph Powershell modules](#install-powershell-7x--ms-graph-powershell-modules)
+  - [Create a certificat for the App](#create-a-certificate-for-the-app)
+  - [Schedule the export](#schedule-the-export)
+
+- [Deploy RDI with a Service Principal](#deploy-rdi-with-a-automation-account)
+  - [Create an Application](#²)
   - [Create a Secret for the App](#create-a-secret-for-the-app)
   - [Create the Automation Account](#create-the-automation-account)
-
-- [Deploy RDI with a Service Principal](#deploy-rdi-with-a-service-principal)
-  - [Create an Application](#create-an-application)
-  - [Create a Secret for the App](#create-a-secret-for-the-app)
-  - [Create the Automation Account](#create-the-automation-account)
-
 
 # Deploy RDI with a Manage Identity
-## Create an MI
 
+## Create an MI
+1. On VM, go to Security menu and select Managed Identity.
+2. Select if you want a system MI or a User MI
+3. Enable the MI **On**
+4. Copy the **Object (principal) ID**
 
 ## Install Powershell 7.x & MS Graph Powershell modules
-Install Powershell 7.x : 
 
+Install Powershell 7.x : <https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4>
 
 1. Install Microsoft.Graph Module
+
 ```powershell
 Install-Module Microsoft.Graph -Scope AllUsers -Repository PSGallery -Force
 Install-Module Microsoft.Graph.Beta -Scope AllUsers -Repository PSGallery -Force
 ```
 
-2. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
+## Set Permission on MI
+
+2. Execute this script with right permissions (see scope of the cmdlet) on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission to export data
+
 ```powershell
 Connect-MgGraph -Scopes AppRoleAssignment.ReadWrite.All, Application.ReadWrite.All, DelegatedPermissionGrant.ReadWrite.All
 ```
+
 If asked, enter your credentials
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image17.png)
@@ -36,6 +45,9 @@ If the following windows is showing up, click Accept
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image18.png)
 
+## Create a Service Principal (SP) instead of MI
+
+If you can't use a MI you can create a SP:
 
 ```powershell
 $RDIAppID=New-MgApplication -DisplayName 'RDIApp'
@@ -58,24 +70,9 @@ foreach ($scope in $scopes) {
 }
 ```
 
-## Create a Secret for the App
-1. Execute these following commands to generate a secret (needed if you use RDI Automation script). 
-**Copy the result of $secret.SecretText in notepad, you'll need it for the RDI automation script.**
-
-```powershell
-$appObjectId = $RDIAppID.Id
-
-$passwordCred = @{
-   displayName = 'Created in PowerShell'
-   endDateTime = (Get-Date).AddMonths(6)
-}
-
-$secret = Add-MgApplicationPassword -applicationId $appObjectId -PasswordCredential $passwordCred
-$secret.SecretText
-
-```
 ## Create a Certificate for the App
-1. Execute these following commands to generate a certificate (needed if you use RDI scheduled task). 
+
+1. Execute these following commands to generate a certificate (needed if you use RDI scheduled task).
 **Export your certificate without the private key and Import it in your App**
 
 ```powershell
@@ -87,12 +84,14 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
 ```
 
-## Create a Schdule Task
+## Schedule the export
+
+1. Create a Schedule Task
 Open a Powershell cmdlet in Admin and execute :
 
 ```powershell
    # Define the action to execute the PowerShell script
-   $action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument '-File "C:\Administration\Scripts\LP-RDI\LP-RDI.ps1"'
+   $action = New-ScheduledTaskAction -Execute '"C:\Program Files\PowerShell\7\pwsh.exe"' -Argument '-File "C:\LP-RDI\LDPI_DashboardDataExport.ps1"'
 
    # Define the trigger to run the task daily at 8 AM
    $trigger = New-ScheduledTaskTrigger -Daily -At 8am
@@ -104,27 +103,45 @@ Open a Powershell cmdlet in Admin and execute :
    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
    # Register the scheduled task
-   Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -Settings $settings -TaskName "LP-RDI Task" -Description "Runs my LP-RDI (Export Entra ID Data) daily at 8 AM"
+   Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -Settings $settings -TaskName "LP-RDI Task PS7" -Description "Runs my LP-RDI (Export Entra ID Data) daily at 8 AM"
+
 ```
 
+2. Copy/paste located in the **Scripts** folder, the PowerShell the file LDPI_DashboardDataExport.ps1 enter in Argument of the Schedule Task
+
+<https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LDPI_DashboardDataExport.ps1>
+
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
+**Don’t forget to update the following value:**
+
+```powershell
+$tenantId (ligne 1565) #It's your ... Tenant ID
+
+#If you don't use a Managed Identity, let $ClientID Empty
+#If you use Service Principal fill ID and the Certificat name
+$ClientID (ligne 1572) #It’s the App ID
+$CertificatName (ligne 1574) #It’s your App Secret, you retrieved in the previous step
+
+#If you use a Log Analytics fill his ID and ShareKey
+#If you don't use Log Analytics let $ShareKey empty
+$CustomerID (line 1567) #It’s your Log Analytic ID
+$Sharekey (line 1569) #It’s your key of your Log Analytic
+```
+
+AppID can be found here :
+
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image25.png)
+Your Workspace and shared key can be found here :
+![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image26.png)
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+# (FOR BACKUP) Deploy RDI with a Automation Account
 
 ## Create the Automation Account
-1. In the Azure Portal (https://portal.azure.com) search Automation Account
+
+1. In the Azure Portal (<https://portal.azure.com>) search Automation Account
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image03.png)
 2. Click on **Create**
 
@@ -152,10 +169,10 @@ Open a Powershell cmdlet in Admin and execute :
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image07.png)
 
-8. **Name** the Runbook 
+8. **Name** the Runbook
 9. In Runbook Type, choose **PowerShell**
 10. Two options
-   1. Classic GUI : In **Runtime version**, choose **7.2**
+1. Classic GUI : In **Runtime version**, choose **7.2**
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image08.png)
 
@@ -163,14 +180,15 @@ Open a Powershell cmdlet in Admin and execute :
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image22.png)
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image23.png)
 
-11.  Click **Review +  Create** and **Create**
-12.  Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the **Scripts** folder
+   11. Click **Review +  Create** and **Create**
+   12. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the **Scripts** folder
 
-https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1
+<https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1>
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
 
 **Don’t forget to update the following value:**
+
 ```powershell
 $tenantId (ligne 982)
 
@@ -193,56 +211,58 @@ AppID can be found here :
 Your Workspace and shared key can be found here :
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image26.png)
 
-1.   Click on **Publish** button and click **Yes**
+1. Click on **Publish** button and click **Yes**
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image10.png)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image27.png)
 
-
-1.  To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
- 2. Classic GUI : In **Shared Resources**, select to **Module**
+1. To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
+2. Classic GUI : In **Shared Resources**, select to **Module**
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image11.png)
 
-  3. New GUI : In **Process Automation**, select **Runtime Environments (Preview)**
+3. New GUI : In **Process Automation**, select **Runtime Environments (Preview)**
      1. Select Powershell 7.2
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image28.png)
 
       List of excepted Modules :
-      * AZ
-      * Microsoft.Graph
-      * Microsoft.Graph.Authentication
-      * Microsoft.Graph.Users
-      * Microsoft.Graph.Applications
-      * Microsoft.Graph.Identity.DirectoryManagement
-      * Microsoft.Graph.Identity.SignIns
-      * Microsoft.Graph.DirectoryObjects
-      * Microsoft.Graph.Identity.Governance
-      * Microsoft.Graph.Groups
-      * Microsoft.Graph.Beta
-      * Microsoft.Graph.Beta.Authenticati
-      * Microsoft.Graph.Beta.Users
-      * Microsoft.Graph.Beta.Applications
-      * Microsoft.Graph.Beta.Identity.DirectoryManagement
-      * Microsoft.Graph.Beta.Identity.SignIns
-      * Microsoft.Graph.Beta.DirectoryObjects
-      * Microsoft.Graph.Beta.Identity.Governance
-      * Microsoft.Graph.Beta.Groups
+      - AZ
+      - Microsoft.Graph
+      - Microsoft.Graph.Authentication
+      - Microsoft.Graph.Users
+      - Microsoft.Graph.Applications
+      - Microsoft.Graph.Identity.DirectoryManagement
+      - Microsoft.Graph.Identity.SignIns
+      - Microsoft.Graph.DirectoryObjects
+      - Microsoft.Graph.Identity.Governance
+      - Microsoft.Graph.Groups
+      - Microsoft.Graph.Beta
+      - Microsoft.Graph.Beta.Authenticati
+      - Microsoft.Graph.Beta.Users
+      - Microsoft.Graph.Beta.Applications
+      - Microsoft.Graph.Beta.Identity.DirectoryManagement
+      - Microsoft.Graph.Beta.Identity.SignIns
+      - Microsoft.Graph.Beta.DirectoryObjects
+      - Microsoft.Graph.Beta.Identity.Governance
+      - Microsoft.Graph.Beta.Groups
 
-2.  If the module are not present
-3.  Go to back to Powershell on your administration workstation.
-4.  If necessary, Install the AZ Module to import Module by PowerShell
+2. If the module are not present
+3. Go to back to Powershell on your administration workstation.
+4. If necessary, Install the AZ Module to import Module by PowerShell
 
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-16.  Connect to Azure 
+
+16. Connect to Azure
 
 ```powershell
 Connect-AzAccount 
 ```
-17.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account** and the name of the **resource goup** where the accound is located
+
+17. Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account** and the name of the **resource goup** where the accound is located
+
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
@@ -252,27 +272,29 @@ foreach ($aaModule in $AAModules) {
     New-AzAutomationModule -AutomationAccountName 'XXXXXX' -ResourceGroupName 'XXXX' -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion" -RuntimeVersion 7.2
 }
 ```
+
 17. Check the availability. This can take some minutes !
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image12.png)
 
-18.  You can schedule the script execution. Click on **Runbook**, select you **Runbook** 
-19.  Click **Schedule** and click **add a schedule**
-20.  Complete all the step to create the schedule
+18. You can schedule the script execution. Click on **Runbook**, select you **Runbook**
+19. Click **Schedule** and click **add a schedule**
+20. Complete all the step to create the schedule
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image33.png)
 21.  You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image14.png)
 
-
 ## If you want to use Managed Identity
+
 1. Go to the AA and note the ID of the Managed Identity
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image15.png)
 
 2. Install Microsoft.Graph Module
 Execute these PowerShell commands to set permissions
 Change < Managed Identity ID> by your Managed Identity ID
+
 ```powershell
 Connect-MgGraph
 
@@ -292,28 +314,23 @@ foreach ($scope in $scopes) {
 }
 ```
 
-
-
-
-
-
-
-
-
-
 # Deploy RDI with a Manage Identity
+
 ## Create an MI
 
 1. Install Microsoft.Graph Module
+
 ```powershell
 Install-Module Microsoft.Graph -Scope AllUsers -Repository PSGallery -Force
 Install-Module Microsoft.Graph.Beta -Scope AllUsers -Repository PSGallery -Force
 ```
 
 2. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
+
 ```powershell
 Connect-MgGraph -Scopes AppRoleAssignment.ReadWrite.All, Application.ReadWrite.All, DelegatedPermissionGrant.ReadWrite.All
 ```
+
 If asked, enter your credentials
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image17.png)
@@ -321,7 +338,6 @@ If asked, enter your credentials
 If the following windows is showing up, click Accept
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image18.png)
-
 
 ```powershell
 $RDIAppID=New-MgApplication -DisplayName 'RDIApp'
@@ -345,7 +361,8 @@ foreach ($scope in $scopes) {
 ```
 
 ## Create a Secret for the App
-1. Execute these following commands to generate a secret (needed if you use RDI Automation script). 
+
+1. Execute these following commands to generate a secret (needed if you use RDI Automation script).
 **Copy the result of $secret.SecretText in notepad, you'll need it for the RDI automation script.**
 
 ```powershell
@@ -360,8 +377,10 @@ $secret = Add-MgApplicationPassword -applicationId $appObjectId -PasswordCredent
 $secret.SecretText
 
 ```
+
 ## Create a Certificate for the App
-1. Execute these following commands to generate a certificate (needed if you use RDI scheduled task). 
+
+1. Execute these following commands to generate a certificate (needed if you use RDI scheduled task).
 **Export your certificate without the private key and Import it in your App**
 
 ```powershell
@@ -374,7 +393,8 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 ```
 
 ## Create the Automation Account
-1. In the Azure Portal (https://portal.azure.com) search Automation Account
+
+1. In the Azure Portal (<https://portal.azure.com>) search Automation Account
    ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image03.png)
 2. Click on **Create**
 
@@ -402,10 +422,10 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image07.png)
 
-8. **Name** the Runbook 
+8. **Name** the Runbook
 9. In Runbook Type, choose **PowerShell**
 10. Two options
-   1. Classic GUI : In **Runtime version**, choose **7.2**
+1. Classic GUI : In **Runtime version**, choose **7.2**
 
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image08.png)
 
@@ -413,14 +433,15 @@ $keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData())
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image22.png)
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image23.png)
 
-11.  Click **Review +  Create** and **Create**
-12.  Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the **Scripts** folder
+   11. Click **Review +  Create** and **Create**
+   12. Copy/paste the PowerShell code form the file LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1 located in the **Scripts** folder
 
-https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1
+<https://github.com/B1129E5/LP-RDI/blob/main/Scripts/LPDI_Dashboard_v1.0_RunBook_AutomationAccount.ps1>
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image09.png)
 
 **Don’t forget to update the following value:**
+
 ```powershell
 $tenantId (ligne 982)
 
@@ -443,56 +464,58 @@ AppID can be found here :
 Your Workspace and shared key can be found here :
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image26.png)
 
-1.   Click on **Publish** button and click **Yes**
+1. Click on **Publish** button and click **Yes**
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image10.png)
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image27.png)
 
-
-1.  To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
- 2. Classic GUI : In **Shared Resources**, select to **Module**
+1. To check if required modules are installed. Close the **Runbook** blade to go back to the **Azure Automation Account**. Two options depending of the GUI Experience you have :
+2. Classic GUI : In **Shared Resources**, select to **Module**
 
       ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image11.png)
 
-  3. New GUI : In **Process Automation**, select **Runtime Environments (Preview)**
+3. New GUI : In **Process Automation**, select **Runtime Environments (Preview)**
      1. Select Powershell 7.2
     ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image28.png)
 
       List of excepted Modules :
-      * AZ
-      * Microsoft.Graph
-      * Microsoft.Graph.Authentication
-      * Microsoft.Graph.Users
-      * Microsoft.Graph.Applications
-      * Microsoft.Graph.Identity.DirectoryManagement
-      * Microsoft.Graph.Identity.SignIns
-      * Microsoft.Graph.DirectoryObjects
-      * Microsoft.Graph.Identity.Governance
-      * Microsoft.Graph.Groups
-      * Microsoft.Graph.Beta
-      * Microsoft.Graph.Beta.Authenticati
-      * Microsoft.Graph.Beta.Users
-      * Microsoft.Graph.Beta.Applications
-      * Microsoft.Graph.Beta.Identity.DirectoryManagement
-      * Microsoft.Graph.Beta.Identity.SignIns
-      * Microsoft.Graph.Beta.DirectoryObjects
-      * Microsoft.Graph.Beta.Identity.Governance
-      * Microsoft.Graph.Beta.Groups
+      - AZ
+      - Microsoft.Graph
+      - Microsoft.Graph.Authentication
+      - Microsoft.Graph.Users
+      - Microsoft.Graph.Applications
+      - Microsoft.Graph.Identity.DirectoryManagement
+      - Microsoft.Graph.Identity.SignIns
+      - Microsoft.Graph.DirectoryObjects
+      - Microsoft.Graph.Identity.Governance
+      - Microsoft.Graph.Groups
+      - Microsoft.Graph.Beta
+      - Microsoft.Graph.Beta.Authenticati
+      - Microsoft.Graph.Beta.Users
+      - Microsoft.Graph.Beta.Applications
+      - Microsoft.Graph.Beta.Identity.DirectoryManagement
+      - Microsoft.Graph.Beta.Identity.SignIns
+      - Microsoft.Graph.Beta.DirectoryObjects
+      - Microsoft.Graph.Beta.Identity.Governance
+      - Microsoft.Graph.Beta.Groups
 
-2.  If the module are not present
-3.  Go to back to Powershell on your administration workstation.
-4.  If necessary, Install the AZ Module to import Module by PowerShell
+2. If the module are not present
+3. Go to back to Powershell on your administration workstation.
+4. If necessary, Install the AZ Module to import Module by PowerShell
 
 ```powershell
 Install-Module -Name Az -Repository PSGallery -Force -Scope AllUsers
 ```
-16.  Connect to Azure 
+
+16. Connect to Azure
 
 ```powershell
 Connect-AzAccount 
 ```
-17.  Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account** and the name of the **resource goup** where the accound is located
+
+17. Execute these PowerShell Commands with PowerShell 5.1 to add the required modules. **Change XXX by the the name of your Azure automation account** and the name of the **resource goup** where the accound is located
+
 ```powershell
 $AAModules = "Microsoft.Graph","Microsoft.Graph.Authentication","Microsoft.Graph.Users","Microsoft.Graph.Applications","Microsoft.Graph.Identity.DirectoryManagement","Microsoft.Graph.Identity.SignIns","Microsoft.Graph.DirectoryObjects","Microsoft.Graph.Identity.Governance","Microsoft.Graph.Groups","Microsoft.Graph.Beta","Microsoft.Graph.Beta.Authentication","Microsoft.Graph.Beta.Users","Microsoft.Graph.Beta.Applications","Microsoft.Graph.Beta.Identity.DirectoryManagement","Microsoft.Graph.Beta.Identity.SignIns","Microsoft.Graph.Beta.DirectoryObjects","Microsoft.Graph.Beta.Identity.Governance","Microsoft.Graph.Beta.Groups"
 
@@ -502,27 +525,29 @@ foreach ($aaModule in $AAModules) {
     New-AzAutomationModule -AutomationAccountName 'XXXXXX' -ResourceGroupName 'XXXX' -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion" -RuntimeVersion 7.2
 }
 ```
+
 17. Check the availability. This can take some minutes !
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image12.png)
 
-18.  You can schedule the script execution. Click on **Runbook**, select you **Runbook** 
-19.  Click **Schedule** and click **add a schedule**
-20.  Complete all the step to create the schedule
+18. You can schedule the script execution. Click on **Runbook**, select you **Runbook**
+19. Click **Schedule** and click **add a schedule**
+20. Complete all the step to create the schedule
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image33.png)
 21.  You can run manually the script. Click on the run book and after click Run. You can follow the status by clicking on status.
 
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image14.png)
 
-
 ## If you want to use Managed Identity
+
 1. Go to the AA and note the ID of the Managed Identity
 ![alt text](https://github.com/B1129E5/LP-RDI/blob/main/Documentations/Images/Image15.png)
 
 2. Install Microsoft.Graph Module
 Execute these PowerShell commands to set permissions
 Change < Managed Identity ID> by your Managed Identity ID
+
 ```powershell
 Connect-MgGraph
 
