@@ -1569,7 +1569,7 @@ function Write-Log {
     $SharedKey      = "LAiBbzuQ6XbYglNPe9oTsySnETjnoF9az95jFch+Blqnf/iMtiNZ/GC97X604Vo9B7GSALS2U+tWn7bQDJkUoA=="
 
 #### If you don't use Managed Identity
-    $ClientID       = "95fd77b5-fd20-40cc-935d-0f7bee0b066b"
+    $ClientID       = ""
 #Replace with your Certificat Name
     $CertificatName = "CN=MSGraph_RDIApps"
     $Thumbprint     = (Get-ChildItem cert:\CurrentUser\My\ | Where-Object {$_.Subject -eq $CertificatName}).Thumbprint 
