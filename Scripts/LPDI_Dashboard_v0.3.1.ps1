@@ -10,34 +10,12 @@ Leave BLANK to NOT use Workspace
 .PARAMETER FilePath
 Export CSV files to this folder. It will be created if not exist  
 
-.PARAMETER All
-Execute all exports
-
-.PARAMETER AzureAD_SP
-Export all information about Service Principals & Consents
-
-.PARAMETER AzureAD_Role
-Export all information about Azure AD Roles
-
-.PARAMETER AzureAD_CA
-Export all information about conditional access policies
-
-.PARAMETER AzureAD_Logs
-Export all information about Azure AD Audit Logs & Signins Logs. Only exported when CSV is True
-
-.PARAMETER Days
-Define how many days to export for Azure AD Logs & Signins Logs. By default 7 days
-
 .PARAMETER CSV
 Export data to a CSV files
 
 .EXAMPLE
-.\LPDI_Dashboard.ps1 -FolderPath C:\Azure\LPDI -Days 5 -All -CSV
-Export Data to C:\Azure\LPDI folder, execute all exports, and export Audit & Signin Logs for 5 days 
-
-.EXAMPLE
-.\LPDI_Dashboard.ps1 -All
-Export Data to Log Analytics Workspace only (you should fill your Workspace Key in the variable), execute all exports 
+.\LPDI_Dashboard.ps1 -FolderPath C:\Azure\LPDI -CSV
+Export Data to C:\Azure\LPDI folder 
 
 .OUTPUTS
 The script creates report files in the folder:
@@ -46,7 +24,7 @@ The script creates report files in the folder:
 - CAPolicies.csv
 
 .NOTES
-Version 2.1
+Version 3.0
 =============================================================================
                  - DISCLAIMER -
  This sample script is not supported under any Microsoft standard support 
@@ -64,19 +42,15 @@ Version 2.1
 
 =============================================================================
                  - RELEASE NOTES -
- v2.0 2022.01.28 - Add Export to Log Analytics + improvement
- v2.1 2022.02.24 - Remove Signin & Audit Logs export
+ v3.0 2024.09.30 - Full support with MS Graph
 
 =============================================================================
 #>
 
 param (
         [string]$FilePath="C:\Azure\LPDI", # + $(Get-Date -Format "yyyy-MM-dd") + "\",
-        [switch]$All=$true,
-        [switch]$AzureAD_SP,
-        [switch]$AzureAD_Role,
-        [switch]$AzureAD_CA,
-        [switch]$CSV=$true
+        [switch]$CSV=$true,
+        [switch]$MI=$true
     )
 
 function Get-AadAppsConsents {
@@ -125,10 +99,6 @@ param(
         $delegatedPermissions = Get-MgBetaServicePrincipalOauth2PermissionGrant -ServicePrincipalId $ServicePrincipalId
 
         foreach ($permission in $delegatedPermissions) {
-
-            #$sp=(Get-MgServicePrincipal -ServicePrincipalId $permission.ResourceId).DisplayName
-            #$permission.ResourceId --> Microsoft Graph or other
-
             $objResource = Get-MgbetaDirectoryObjectById -Ids $permission.ResourceId
             $principalDisplayName = ""
             if ($permission.PrincipalId) {
@@ -201,14 +171,14 @@ Function ObjPIMPermission {
       if ($UserAuthentificationMethods.Count -gt 2) {
         for ($i=0;$i -lt $UserAuthentificationMethods.Count;++$i){
           $UserAuthentificationMethods[$i].'@odata.type' -match $regex | Out-Null  
-          $userMethods +="$($matches[3]):$($UserAuthentificationMethods[$i].displayName)`r`n" #`r`n"
+          $userMethods +="$($matches[3]):$($UserAuthentificationMethods[$i].displayName)|" #`r`n"
         }
         $Account_MFA = "Provided"
         $Account_Methods = $userMethods           
       }
       elseif ($UserAuthentificationMethods.Count -gt 1) {
         $UserAuthentificationMethods.'@odata.type' -match $regex | Out-Null  
-        $userMethods ="$($matches[3]):$($UserAuthentificationMethods.displayName)`r`n"
+        $userMethods ="$($matches[3]):$($UserAuthentificationMethods.displayName)|"
       }
       else {
         $Account_MFA="Not Provided"
@@ -307,6 +277,7 @@ foreach ($role in $roles) {
 
   Write-Progress -Id 2 -Activity "Get Entra RBAC Information" -Status ("Checked {0}/{1} Accounts --> {2}" -f $t++, $Total, $ObjDetails.AdditionalProperties.displayName) -PercentComplete ((($t-1) / $Total) * 100)
 
+  
 
   $regex = "^([^.]+)\.([^.]+)\.(.+)$"
 
@@ -327,6 +298,12 @@ foreach ($role in $roles) {
 
   for ($i=0;$i -lt $ObjPerm.Count;++$i){if (($i+1) -ne $ObjPerm.Count) {$ObjPermDetails += "$($ObjPerm[$i])`r`n"} else {$ObjPermDetails += "$($ObjPerm[$i])"}}
  
+    $percentComplete = [math]::Floor((($t-1) / $Total) * 100)
+    # Log progress every 10%
+    if ($percentComplete % 10 -eq 0) {
+        Write-Log -Message "Processing items - $percentComplete%" -LogFile $LogFile -Type "INFO" -color "Yellow"
+    }
+
     if ($matches[3] -eq "Group") {
       $ObjMembers = Get-MgGroupMember -GroupId $role.PrincipalId -All
       foreach ($ObjMember in $ObjMembers) {
@@ -450,14 +427,14 @@ function Get-AadRoleMembers {
                     if ($UserAuthentificationMethods.Count -gt 2) {
                       for ($i=0;$i -lt $UserAuthentificationMethods.Count;++$i){
                         $UserAuthentificationMethods[$i].'@odata.type' -match $regex | Out-Null  
-                        $userMethods +="$($matches[3]):$($UserAuthentificationMethods[$i].displayName)`r`n" #`r`n"
+                        $userMethods +="$($matches[3]):$($UserAuthentificationMethods[$i].displayName)|" #`r`n"
                       }
                       $Account_MFA = "Provided"
                       $Account_Methods = $userMethods           
                     }
                     elseif ($UserAuthentificationMethods.Count -gt 1) {
                       $UserAuthentificationMethods.'@odata.type' -match $regex | Out-Null  
-                      $userMethods ="$($matches[3]):$($UserAuthentificationMethods.displayName)`r`n"
+                      $userMethods ="$($matches[3]):$($UserAuthentificationMethods.displayName)|"
                     }
                     else {
                       $Account_MFA="Not Provided"
@@ -511,7 +488,7 @@ function Get-AadRoleMembers {
                 if ($AccountType -eq "group") {
                 
                     $PSObj | Add-Member -MemberType NoteProperty -Name Account_Type -force -Value "Group"
-                    #$aadgroupmembers = Get-MgGroup -GroupId $aadRoleMember.Id | Get-MgGroupMember
+ 
                     $aadgroupmembers=Get-MgGroupMember -GroupId $aadRoleMember.Id
 
                     if ($aadgroupmembers) {$PSObj | Add-Member -MemberType NoteProperty -Name Account_Type -force -Value "Group"}
@@ -526,14 +503,14 @@ function Get-AadRoleMembers {
                         if ($UserAuthentificationMethods.Count -gt 2) {
                         for ($i=0;$i -lt $UserAuthentificationMethods.Count;++$i){
                             $UserAuthentificationMethods[$i].'@odata.type' -match $regex | Out-Null  
-                            $userMethods +="$($matches[3]):$($UserAuthentificationMethods[$i].displayName)`r`n" #`r`n"
+                            $userMethods +="$($matches[3]):$($UserAuthentificationMethods[$i].displayName)|" #`r`n"
                         }
                         $Account_MFA = "Provided"
                         $Account_Methods = $userMethods           
                         }
                         elseif ($UserAuthentificationMethods.Count -gt 1) {
                         $UserAuthentificationMethods.'@odata.type' -match $regex | Out-Null  
-                        $userMethods ="$($matches[3]):$($UserAuthentificationMethods.displayName)`r`n"
+                        $userMethods ="$($matches[3]):$($UserAuthentificationMethods.displayName)|"
                         }
                         else {
                         $Account_MFA="Not Provided"
@@ -627,9 +604,7 @@ function Get-AadRoleMembers {
      
            }
 
-           #Write-Host "$($aadRole.DisplayName) :`t" -NoNewline
            $total = $aadRoleMembers.count + $TotalGroupMembers
-           #Write-Host "$($total)"
 
            $Summarytmp = New-Object System.Object
            $Summarytmp | Add-Member -MemberType NoteProperty -Name AzureAD_RoleName -force -Value $aadRole.DisplayName
@@ -641,19 +616,87 @@ function Get-AadRoleMembers {
     }
     $Summary
 }
+
 function Get-AzureADCAPolicies {
     param (
         [string]$FolderPath
     )
 
-    import-module Microsoft.Graph.Identity.SignIns
-    #$CAPolicies=Get-AzureADMSConditionalAccessPolicy
-    $CAPolicies=Get-MgIdentityConditionalAccessPolicy
+    Class clCAPolicy {
+        #General
+        [guid]$Id
+        [string]$DisplayName
+        [datetime]$CreatedDateTime                                     
+        [datetime]$ModifiedDateTime                                    
+        [bool]$State
+        #Conditions
+        [string]$IncludeUsers
+        [string]$IncludeGuestsOrExternalUsers    
+        [string]$ExcludeUsers
+        [string]$ExcludeGuestsOrExternalUsers
+        [string]$IncludeGroups
+        [string]$ExcludeGroups
+        [string]$IncludeRoles
+        [string]$ExcludeRoles        
+        [string]$IncludeApplications
+        [string]$ExcludeApplications
+        [string]$ApplicationFilterMode
+        [string]$ApplicationFilterRule
+        [string]$IncludeAuthenticationContextClassReferences
+        [string]$IncludeUserActions
+        [string]$IncludeDeviceStates
+        [string]$ExcludeDeviceStates
+        [string]$deviceStates
+        [string]$includeLocations
+        [string]$excludeLocations
+        [string]$ClientAppTypes
+        [string]$ClientApplicationsExcludeServicePrincipals
+        [string]$ClientApplicationsIncludeServicePrincipals
+        [string]$ClientApplicationsServicePrincipalFilterMode
+        [string]$ClientApplicationsServicePrincipalFilterRule
+        [string]$includePlatforms
+        [string]$excludePlatforms
+        [string]$SignInRiskLevels
+        [string]$UserRiskLevels
+        [string]$ServicePrincipalRiskLevels
+        [string]$DeviceFilterMode
+        [string]$DeviceFilterRule
+ 
+        #GrantControls
+        [string]$GrantControls_Operator
+        [string]$GrantControls_BuiltInControls
+        [string]$CustomAuthenticationFactors
+        [string]$TermsOfUse
+        [string]$AuthenticationStrengthName
 
+        #SessionControls
+        [bool]$ApplicationEnforcedRestrictions
+        [string]$DisableResilienceDefaults   
+        [string]$cloudAppSecurityType                                
+        [string]$CloudAppSecurity_isEnabled                          
+        [string]$PersistentBrowser_mode                              
+        [string]$PersistentBrowser_IsEnabled                         
+        [string]$SignInFrequency_value                               
+        [string]$SignInFrequency_type                                
+        [string]$SignInFrequency_isEnabled                                          
+        [string]$cTimeStampField                                     
+    }
+
+    $CAPolicies=Get-MgBetaIdentityConditionalAccessPolicy -All
+    $CAPolicies | Sort-Object DisplayName
+ 
+    if (-not $CAPolicies) {
+        Write-Host "No CA policies found ! " -ForegroundColor Red
+        return
+    }
+    else {
+        Write-Host "Found $($CAPolicies.Count) CA policies" -ForegroundColor Green
+    }
 
     # Specify the name of the record type that you'll be creating
     $LogType = "DashboardAAD_CA"
     $DataArr = @()
+    $CAExport = @()
     $x=1
     $Total = $CAPolicies.Count
     $AllAADRoles = Get-MgDirectoryRoleTemplate
@@ -661,402 +704,782 @@ function Get-AzureADCAPolicies {
     foreach ($CAPolicy in $CAPolicies) {
 
             Write-Progress -Id 1 -Activity "Process Conditional Access Policies" -Status ("Checked {0}/{1} CA Policy" -f $x++, $Total) -PercentComplete ((($x-1) / $Total) * 100)
-            $DataObj = New-Object -TypeName PSObject
             
-            $DataObj | Add-Member -MemberType NoteProperty -Name Id -force -Value $CAPolicy.id
-            $DataObj | Add-Member -MemberType NoteProperty -Name DisplayName -force -Value $CAPolicy.displayName
-            $DataObj | Add-Member -MemberType NoteProperty -Name CreatedDateTime -force -Value ""
-            $DataObj | Add-Member -MemberType NoteProperty -Name ModifiedDateTime -force -Value ""
-            $DataObj | Add-Member -MemberType NoteProperty -Name State -force -Value $CAPolicy.State
+            $percentComplete = [math]::Floor((($x-1) / $Total) * 100)
 
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.SignInRiskLevels
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
+            # Log progress every 10%
+            if ($percentComplete % 10 -eq 0) {
+                Write-Log -Message "Processing items - $percentComplete%" -LogFile $LogFile -Type "INFO" -color "Yellow"
+            }
+
+            $tmpclCAPolicy = [clcapolicy]::new()
+
+            $tmpclCAPolicy.Id = $CAPolicy.Id
+            $tmpclCAPolicy.DisplayName = $CAPolicy.DisplayName
+            $tmpclCAPolicy.CreatedDateTime = $CAPolicy.CreatedDateTime
+            try {
+                $tmpclCAPolicy.ModifiedDateTime = $CAPolicy.ModifiedDateTime    
+            }
+            catch {
+                $result = "Error"
+            }
+            
+            $tmpclCAPolicy.State = $CAPolicy.State
+
+            try {
+                $result = $CAPolicy.Conditions.SignInRiskLevels -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
                 }
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name SignInRiskLevels -force -Value $Details
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInRiskLevels = $result
+            $result = $null
+            
+            try {
+                $result = $CAPolicy.Conditions.UserRiskLevels -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.UserRiskLevels = $result
+            $result = $null
 
+            try {
+                $result = $CAPolicy.Conditions.ServicePrincipalRiskLevels -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ServicePrincipalRiskLevels = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Users.IncludeUsers
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-MgDirectoryObjectById -ids $item).AdditionalProperties.displayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                    
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.IncludeUsers = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Users.ExcludeUsers
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-MgDirectoryObjectById -ids $item).AdditionalProperties.displayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ExcludeUsers = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Users.IncludeGuestsOrExternalUsers
+                if (!$result.GuestOrExternalUserTypes) {
+                    $result = "NotSet"
+                }
+                else {
+                    if ($result.ExternalTenants.MembershipKind -eq "all") {
+                            $result = "$($result.GuestOrExternalUserTypes) | Limited to Org: all)"    
+                        }
+                    else {
+                            $result = "$($result.GuestOrExternalUserTypes) | Limited to Org: $($result.ExternalTenants.AdditionalProperties.members)"    
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.IncludeGuestsOrExternalUsers = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Users.ExcludeGuestsOrExternalUsers
+                if (!$result.GuestOrExternalUserTypes) {
+                    $result = "NotSet"
+                }
+                else {
+                    if ($result.ExternalTenants.AdditionalProperties.members) {
+                        $result = "$($result.GuestOrExternalUserTypes) | Limited to Org: $($result.ExternalTenants.AdditionalProperties.members)"    
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ExcludeGuestsOrExternalUsers = $result
+            $result = $null
         
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.UserRiskLevels
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
+            try {
+                $result = $CAPolicy.Conditions.Users.IncludeGroups
+                if (!$result) {
+                    $result = "NotSet"
                 }
                 else {
-                    $Details += "$($CAData[$i])"    
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-MgDirectoryObjectById -ids $item).AdditionalProperties.displayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
                 }
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name UserRiskLevels -force -Value $Details
-        
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Users.IncludeGroups
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-mgGroup -GroupId $CAData[$i]).displayname
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
+            catch {
+                $result = "Error"
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeGroups -force -Value $Details
+            $tmpclCAPolicy.IncludeGroups = $result -join "`r`n"
+            $result = $null
 
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Users.ExcludeGroups
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                            if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-mgGroup -GroupId $CAData[$i]).displayname
+            try {
+                $result = $CAPolicy.Conditions.Users.ExcludeGroups
+                if (!$result) {
+                    $result = "NotSet"
                 }
                 else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-MgDirectoryObjectById -ids $item).AdditionalProperties.displayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
                 }
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ExcludeGroups -force -Value $Details
-      
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Users.IncludeRoles
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $($AllAADRoles | Where-Object {$_.id -eq $CAData[$i]}).DisplayName
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
+            catch {
+                $result = "Error"
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeRoles -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Users.ExcludeRoles
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $($AllAADRoles | Where-Object {$_.id -eq $CAData[$i]}).DisplayName
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ExcludeRoles -force -Value $Details
-        
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Users.IncludeUsers
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-MgUser -UserId $CAData[$i]).UserPrincipalName
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeUsers -force -Value $Details
-               
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Users.ExcludeUsers
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-MgUser -UserId $CAData[$i]).UserPrincipalName
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ExcludeUsers -force -Value $Details
-         
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Applications.IncludeApplications
-            for ($i=0;$i -lt $CAData.Count;++$i){
-            
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-mgServicePrincipal -Filter ("appId eq '{0}'" -f $CAData[$i])).displayname
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-            
-                if (($i+1) -ne $CAData.Count) {
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-                $name =$null
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeApplications -force -Value $Details
-        
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Applications.ExcludeApplications
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-MgServicePrincipal -Filter ("appId eq '{0}'" -f $CAData[$i])).displayname
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-            
-                if (($i+1) -ne $CAData.Count) {
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-                $name =$null
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ExcludeApplications -force -Value $Details
+            $tmpclCAPolicy.ExcludeGroups = $result -join "`r`n"
+            $result = $null
 
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Applications.IncludeProtectionLevels
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
+            try {
+                $result = $CAPolicy.Conditions.Users.IncludeRoles
+                if (!$result) {
+                    $result = "NotSet"
                 }
                 else {
-                    $Details += "$($CAData[$i])"    
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $($AllAADRoles | Where-Object {$_.id -eq $item}).DisplayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
                 }
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeProtectionLevels -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Applications.IncludeUserActions
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -eq "urn:user:registerdevice") {
-                    $IncludeUserActions = "Register or join devices"    
-                }
-                elseif ($CAData[$i] -eq "urn:user:registersecurityinfo") {
-                    $IncludeUserActions = "Register security information"
-                }
-                else {
-                    $IncludeUserActions = $CAData[$i]
-                }
-                $Details += "$IncludeUserActions`r`n"
+            catch {
+                $result = "Error"
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeUserActions -force -Value $Details
-                                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Devices.IncludeDeviceStates
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name IncludeDeviceStates -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Devices.ExcludeDeviceStates
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ExcludeDeviceStates -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.deviceStates
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name deviceStates -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Locations.includeLocations
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-MgIdentityConditionalAccessNamedLocation -NamedLocationId $CAData[$i]).DisplayName
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name includeLocations -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Locations.excludeLocations
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if ($CAData[$i] -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
-                    $Name = $(Get-MgIdentityConditionalAccessNamedLocation -NamedLocationId $CAData[$i]).DisplayName
-                }
-                else {
-                    $Name = $CAData[$i]
-                }
-            
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$Name`r`n"
-                }
-                else {
-                    $Details += "$Name"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name excludeLocations -force -Value $Details
-        
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.ClientAppTypes
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ClientAppTypes -force -Value $Details
-            
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Platforms.includePlatforms
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name includePlatforms -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.Conditions.Platforms.excludePlatforms
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name excludePlatforms -force -Value $Details
+            $tmpclCAPolicy.IncludeRoles = $result -join "`r`n"
+            $result = $null
 
-            $DataObj | Add-Member -MemberType NoteProperty -Name GrantControls_Operator -force -Value $CAPolicy.GrantControls._Operator
-                
-            $Details = $null
-            $CAData = $CAPolicy.GrantControls.BuiltInControls
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
+            try {
+                $result = $CAPolicy.Conditions.Users.ExcludeRoles -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
                 }
                 else {
-                    $Details += "$($CAData[$i])"    
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $($AllAADRoles | Where-Object {$_.id -eq $item}).DisplayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
                 }
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name GrantControls_BuiltInControls -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.GrantControls.CustomAuthenticationFactors
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
+            catch {
+                $result = "Error"
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name CustomAuthenticationFactors -force -Value $Details
-                
-            $Details = $null
-            $CAData = $CAPolicy.GrantControls.TermsOfUse
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
-                }
-                else {
-                    $Details += "$($CAData[$i])"    
-                }
-            }
-            $DataObj | Add-Member -MemberType NoteProperty -Name TermsOfUse -force -Value $Details
+            $tmpclCAPolicy.ExcludeRoles = $result
+            $result = $null
 
-                
-            $Details = $null
-            $CAData = $CAPolicy.SessionControls.ApplicationEnforcedRestrictions
-            for ($i=0;$i -lt $CAData.Count;++$i){
-                if (($i+1) -ne $CAData.Count) { 
-                    $Details += "$($CAData[$i])`r`n"
+            try {
+                $result = $CAPolicy.Conditions.Applications.ApplicationFilter.Mode
+                if (!$result) {
+                    $result = "NotSet"
                 }
                 else {
-                    $Details += "$($CAData[$i])"    
+                    $result = $true
                 }
             }
-            $DataObj | Add-Member -MemberType NoteProperty -Name ApplicationEnforcedRestrictions -force -Value $Details
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ApplicationFilterMode = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.ApplicationFilter.Rule
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ApplicationFilterRule = $result
+            $result = $null
+
             
-            $DataObj | Add-Member -MemberType NoteProperty -Name cloudAppSecurityType -force -Value $CAPolicy.SessionControls.CloudAppSecurity.cloudAppSecurityType
-            $DataObj | Add-Member -MemberType NoteProperty -Name CloudAppSecurity_isEnabled -force -Value $CAPolicy.SessionControls.CloudAppSecurity.isEnabled
-            $DataObj | Add-Member -MemberType NoteProperty -Name PersistentBrowser_mode -force -Value $CAPolicy.SessionControls.PersistentBrowser.Mode
-            $DataObj | Add-Member -MemberType NoteProperty -Name PersistentBrowser_IsEnabled -force -Value $CAPolicy.SessionControls.PersistentBrowser.IsEnabled
-            $DataObj | Add-Member -MemberType NoteProperty -Name SignInFrequency_value -force -Value $CAPolicy.SessionControls.SignInFrequency.value
-            $DataObj | Add-Member -MemberType NoteProperty -Name SignInFrequency_type -force -Value $CAPolicy.SessionControls.SignInFrequency.type
-            $DataObj | Add-Member -MemberType NoteProperty -Name SignInFrequency_isEnabled -force -Value $CAPolicy.SessionControls.SignInFrequency.isEnabled
-            $DataObj | Add-Member -MemberType NoteProperty -Name cTimeStampField -force -Value $TimeStampField
-            $DataArr += $DataObj
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.IncludeAuthenticationContextClassReferences
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.IncludeAuthenticationContextClassReferences = $result
+            $result = $null
+
+
+
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.IncludeApplications
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-mgServicePrincipal -Filter ("appId eq '{0}'" -f $item)).displayname
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.IncludeApplications = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.ExcludeApplications
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                             $Name = $(Get-mgServicePrincipal -Filter ("appId eq '{0}'" -f $item)).displayname
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ExcludeApplications = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.IncludeUserActions -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.IncludeUserActions = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.ClientApplicationsExcludeServicePrincipals
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-mgServicePrincipal -Filter ("appId eq '{0}'" -f $item)).displayname
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ClientApplicationsExcludeServicePrincipals = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.ClientApplicationsIncludeServicePrincipals
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                             $Name = $(Get-mgServicePrincipal -Filter ("appId eq '{0}'" -f $item)).displayname
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ClientApplicationsIncludeServicePrincipals = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Applications.ClientApplications.ServicePrincipalFilter.Mode
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = $true
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ClientApplicationsServicePrincipalFilterMode = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.ClientApplications.ServicePrincipalFilter.Rule
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ClientApplicationsServicePrincipalFilterRule = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Devices.DeviceFilter.Mode
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = $true
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.DeviceFilterMode = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Devices.DeviceFilter.Rule
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.DeviceFilterRule = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.DeviceStates.IncludeDeviceStates -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.IncludeDeviceStates = $result
+
+            try {
+                $result = $CAPolicy.Conditions.DeviceStates.ExcludeDeviceStates -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ExcludeDeviceStates = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.DeviceStates.deviceStates -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.deviceStates = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Locations.includeLocations
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-MgIdentityConditionalAccessNamedLocation -NamedLocationId $item).DisplayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+                
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.includeLocations = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Locations.excludeLocations
+                if (!$result) {
+                    $result = "NotSet"
+                }
+                else {
+                    $result = foreach ($item in $result) {
+                        if ($item -match '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$') {
+                            $Name = $(Get-MgIdentityConditionalAccessNamedLocation -NamedLocationId $item).DisplayName
+                        }
+                        else {
+                            $Name = $item
+                        }
+                        $Name
+                    }
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.excludeLocations = $result -join "`r`n"
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.ClientAppTypes -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ClientAppTypes = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Platforms.includePlatforms -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.includePlatforms = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.Platforms.excludePlatforms -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.excludePlatforms = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.SignInFrequency.value -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInFrequency_value = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.SignInFrequency.type -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInFrequency_type = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.Conditions.SignInFrequency.isEnabled -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInFrequency_isEnabled = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.GrantControls.Operator
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }  
+            $tmpclCAPolicy.GrantControls_Operator = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.GrantControls.BuiltInControls -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.GrantControls_BuiltInControls = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.GrantControls.CustomAuthenticationFactors -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.CustomAuthenticationFactors = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.GrantControls.TermsOfUse -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.TermsOfUse = $result
+            $result = $null
+
+            
+
+            try {
+                $result = $CAPolicy.GrantControls.AuthenticationStrength
+                if (!$result.Id) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.AuthenticationStrengthName = $result.DisplayName
+            $result = $null
+
+
+            try {
+                $result = $CAPolicy.SessionControls.ApplicationEnforcedRestrictions.IsEnabled
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.ApplicationEnforcedRestrictions = $result
+            $result = $null
+            
+            try {
+                $result = $CAPolicy.SessionControls.DisableResilienceDefaults -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.DisableResilienceDefaults = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.cloudAppSecurityType -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.cloudAppSecurityType = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.CloudAppSecurity_isEnabled -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.CloudAppSecurity_isEnabled = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.PersistentBrowser_mode -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.PersistentBrowser_mode = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.PersistentBrowser_IsEnabled -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.PersistentBrowser_IsEnabled = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.SignInFrequency.value -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInFrequency_value = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.SignInFrequency.type -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInFrequency_type = $result
+            $result = $null
+
+            try {
+                $result = $CAPolicy.SessionControls.SignInFrequency.isEnabled -join "`r`n"
+                if (!$result) {
+                    $result = "NotSet"
+                }
+            }
+            catch {
+                $result = "Error"
+            }
+            $tmpclCAPolicy.SignInFrequency_isEnabled = $result
+            $result = $null
+
+            $tmpclCAPolicy.cTimeStampField = $TimeStampField
+
+            $CAExport += $tmpclCAPolicy
+            
     }
 
+    $DataArr=$CAExport
     
     if($csv){
         $ExportFilename = "$FolderPath\CAPolicies.csv"
         Clear-Content $ExportFilename -Force -ErrorAction SilentlyContinue
-        $header = '"Id","DisplayName","CreatedDateTime","ModifiedDateTime","State","SignInRiskLevels","UserRiskLevels","IncludeGroups","ExcludeGroups","IncludeRoles","ExcludeRoles","IncludeUsers","ExcludeUsers","IncludeApplications","ExcludeApplications","IncludeProtectionLevels","IncludeUserActions","IncludeDeviceStates","ExcludeDeviceStates","deviceStates","includeLocations","excludeLocations","ClientAppTypes","includePlatforms","excludePlatforms","GrantControls._Operator","GrantControls.BuiltInControls","CustomAuthenticationFactors","TermsOfUse","ApplicationEnforcedRestrictions","cloudAppSecurityType","CloudAppSecurity.isEnabled","PersistentBrowser.mode","PersistentBrowser.IsEnabled","SignInFrequency.value","SignInFrequency.type","SignInFrequency.isEnabled","cTimeStampField","TimeGenerated"'
-        $header | Out-File $ExportFilename
+        $CAExport | Export-Csv -Path $ExportFilename -Delimiter "," -NoTypeInformation -Force 
     }
     if ($DataArr) {
         if($CSV){$DataArr | Export-Csv -Path $FolderPath\CAPolicies.csv -Delimiter "," -NoTypeInformation -Force}
@@ -1108,138 +1531,202 @@ Function Post-DataToLogAnalytics($customerId, $sharedKey, $body, $logType, $Time
         "x-ms-date" = $rfc1123date;
         "time-generated-field" = $TimeStampField;
     }
-    #Write-Host "LAW Header TimeStamp $TimeStampField" -ForegroundColor Cyan
+ 
     $response = Invoke-WebRequest -Uri $uri -Method $method -ContentType $contentType -Headers $headers -Body $body -UseBasicParsing
-    #return $response.StatusCode
-
 }
 
+function Write-Log {
+    param (
+        [string]$Message,
+        [string]$LogFile,
+        [string]$Type,  # Can be "INFO" or "ERROR"
+        [string]$color,
+        [string]$Category
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logEntry = "$timestamp - [$Type] - $Message"
+
+    # Write to log file
+    Add-Content -Path $LogFile -Value $logEntry
+
+    # Write to console
+    if ($Type -eq "ERROR") {
+        Write-Error $logEntry -Category $Category
+    } else {
+        Write-Host $logEntry -ForegroundColor $color
+    }
+}
+
+########################################################
+#### Enter your environment information
+########################################################
 #Replace with your App ID
-$ClientID       = ""
-#Replace with your Certificat Name
-$Thumbprint     = (Get-ChildItem cert:\CurrentUser\My\ | Where-Object {$_.Subject -eq "CN=MSGraph_RDIApps" }).Thumbprint     
-#Replace with your Tenant ID
-$tenantId       = ''
-
+    $tenantId       = 'eda50e56-2453-45a2-8909-9138efe4ebca'
 # Replace with your Workspace ID
-$CustomerId     = ""  
-# Replace with your Primary Key
-$SharedKey      = ""
-#$SharedKey      = $null
+    $CustomerId     = "e15e150e-179a-4c47-ae6b-4d975ea8270c"  
+# Replace with your Primary Key (Let empty if you dont have Log Analytics)
+    $SharedKey      = "LAiBbzuQ6XbYglNPe9oTsySnETjnoF9az95jFch+Blqnf/iMtiNZ/GC97X604Vo9B7GSALS2U+tWn7bQDJkUoA=="
 
-#$TimeStampField = [DateTime]::UtcNow.ToString("r")
-$TimeStampField=get-date
-Write-Host "LAW TimeStamp $TimeStampField" -ForegroundColor Cyan
-Remove-Module AzureAD -ErrorAction SilentlyContinue
-Import-Module AzureADPreview
+#### If you don't use Managed Identity
+    $ClientID       = "95fd77b5-fd20-40cc-935d-0f7bee0b066b"
+#Replace with your Certificat Name
+    $CertificatName = "CN=MSGraph_RDIApps"
+    $Thumbprint     = (Get-ChildItem cert:\CurrentUser\My\ | Where-Object {$_.Subject -eq $CertificatName}).Thumbprint 
+########################################################
 
-$version=Get-InstalledModule Microsoft.Graph -ErrorAction SilentlyContinue
-if ($version -ne $null) {
-    Write-Host "$($version.name) Version : $($version.Version)" -ForegroundColor Green
-}
-else {
-    Write-Error "Install Microsoft Graph Module : Install-Module Microsoft.Graph" -Category NotInstalled
-    exit
-}
-
-$version=Get-InstalledModule Microsoft.Graph.beta -ErrorAction SilentlyContinue
-if ($version -ne $null) {
-    Write-Host "$($version.name) Version : $($version.Version)" -ForegroundColor Green
-}
-else {
-    Write-Error "Install Microsoft Graph Beta Module : Install-Module Microsoft.Graph.Beta" -Category NotInstalled
-    exit
-}
-
-
-if (($ClientID -eq "") -or ($Thumbprint -eq "")) {
-        Write-Error "Create & set the App details in the script variables" -Category AuthenticationError
-        exit 
-}
-
-$result=Connect-MgGraph -ClientId $ClientID -TenantId $tenantId -CertificateThumbprint $Thumbprint
-$result
-
-
-# Get tenant details to test that Connect-AzureAD has been called
-try {
-    $tenant_details = Get-MgDomain
-
-} catch {
-    Write-Error "Failed to get Tenant Details" -Category AuthenticationError
-    exit
-}
-
-if ((get-culture).Name -ne "en-US") {
-    Write-Error "Regional Settings must be set to en-US." -Category InvalidArgument
-    Write-Host "Use cmd-let : " -NoNewline -ForegroundColor Red
-    Write-Host "set-culture -CultureInfo en-US" -ForegroundColor Gray
-    exit
-}
+$LogFile = "$FilePath\LP-RDI.log"
 
 If(!(test-path $FilePath))
 {
       $result=New-Item -ItemType Directory -Force -Path $FilePath
-      Write-Host "Folder $FilePath created" -ForegroundColor Yellow
+      #Write-Host "Folder $FilePath created" -ForegroundColor Yellow
+      Write-Log -Message "Folder $FilePath created" -color "Yellow" -LogFile $LogFile -Type "INFO"
 }
 
-if (($AzureAD_SP) -or ($All)) {
-    $ServicePrincipalIds = (Get-MgServicePrincipal -All).Id
-    $i=1
-    $total = $ServicePrincipalIds.Count
-    $AppConsentObjs = @()
-    $AppConsentObj = @()
 
-    Write-Host "Beginning App consents export" -ForegroundColor Yellow
-    ForEach ($ServicePrincipalId in $ServicePrincipalIds) {
-        Write-Progress -Id 0 -Activity "Azure AD Apps Consents Export - $($ServicePrincipalId.DisplayName)" -Status ("Checked {0}/{1} Apps" -f $i++, $Total) -PercentComplete ((($i-1) / $Total) * 100)
-        
-        $AppConsentObj=Get-AadAppsConsents -ServicePrincipalid $ServicePrincipalId -TimeStampField $TimeStampField
-        $AppConsentObjs+=$AppConsentObj
-        
-    }
-    Write-Progress -Id 0 -Activity "Azure AD Apps Consents Export" -Completed
-    Write-Host "--> End of App consents export" -ForegroundColor Green
 
-    Clear-Content "$FilePath\AADAppsPermissionsV0.1.csv" -Force -ErrorAction SilentlyContinue
-    if($CSV){$AppConsentObjs | Export-Csv -Path "$FilePath\AADAppsPermissions.csv" -NoTypeInformation -Force}
-        
-    # Specify the name of the record type that you'll be creating
-    $LogType = "DashboardAAD_AADAppConsents"
-    $json = $AppConsentObjs | ConvertTo-Json
-    if($SharedKey){Post-DataToLogAnalytics -customerId $customerId -sharedKey $sharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($json)) -logType $logType -TimeStampField $TimeStampField}
+Write-Log -Message " " -LogFile $LogFile -Type "INFO" -color "Green"
+Write-Log -Message "Begining LP-RDI Export" -LogFile $LogFile -Type "INFO" -color "Cyan"
 
+$version = Get-InstalledModule Microsoft.Graph.beta -ErrorAction SilentlyContinue
+if ($version -ne $null) {
+    #Write-Host "$($version.name) Version : $($version.Version)" -ForegroundColor Green
+    Write-Log -Message "$($version.name) Version : $($version.Version)" -LogFile $LogFile -Type "INFO" -color "Yellow"
 }
-#>
-if (($AzureAD_Role) -or ($All)) {
-    Write-Host "Beginning AAD Roles export" -ForegroundColor Yellow
-    $AADTenantLicence = ""
+else {
+    #Write-Error "Install Microsoft Graph Beta Module : Install-Module Microsoft.Graph.Beta" -Category NotInstalled
+    Write-Log -Message "Error / Install Microsoft Graph Beta Module : Install-Module Microsoft.Graph.Beta" -LogFile $LogFile -Type "ERROR" -color "Red" -Category NotInstalled
+    exit
+}
 
-    $AzureADLicenceSKUs = Get-MgSubscribedSku
-    foreach ($AzureADLicenceSKU in $AzureADLicenceSKUs) {
-        foreach ($plan in $AzureADLicenceSKU.ServicePlans) {
-            if ($plan.ServicePlanName -eq "AAD_PREMIUM_P2") {
-                $AADTenantLicence = "P2"
-            }
+$version = Get-InstalledModule Microsoft.Graph -ErrorAction SilentlyContinue
+if ($version -ne $null) {
+    #Write-Host "$($version.name) Version : $($version.Version)" -ForegroundColor Green
+    Write-Log -Message "$($version.name) Version : $($version.Version)" -LogFile $LogFile -Type "INFO" -color "Yellow" 
+}
+else {
+    #Write-Error "Install Microsoft Graph Module : Install-Module Microsoft.Graph" -Category NotInstalled
+    Write-Log -Message "Error / Install Microsoft Graph Module : Install-Module Microsoft.Graph" -LogFile $LogFile -Type "ERROR" -color "Red" -Category NotInstalled
+    exit
+}
+
+Write-Log -Message "Connecting to Entra ID" -LogFile $LogFile -Type "INFO" -color "Cyan"
+
+if ($MI) {
+        $result = Connect-MgGraph -identity
+        Write-Log -Message "Connect with MI - $result" -LogFile $LogFile -Type "INFO" -color "Green"
+}
+else {
+    if ($Thumbprint) {
+        if ($ClientID) {
+            $result = Connect-MgGraph -ClientId $ClientID -TenantId $tenantId -CertificateThumbprint $Thumbprint
+            Write-Log -Message "Connect with SP" -LogFile $LogFile -Type "INFO" -color "Green"
+        }
+        else {
+            #Write-Error "ClientID empty" -Category ConnectionError
+            Write-Log -Message "ClientID empty" -LogFile $LogFile -Type "ERROR" -color "Red" -Category ConnectionError
+            exit
         }
     }
-
-    if ($AADTenantLicence -eq "P2") {
-        Write-Host "P2 licences detected, use PIM cmdlet to export" -ForegroundColor Gray
-        Get-EntraIDPIMRole -FolderPath $FilePath -customerId $CustomerId -sharedKey $SharedKey
-
-    }
     else {
-        Write-Host "NO P2 licences detected, use classic cmdlet to export" -ForegroundColor Yellow
-        Get-AadRoleMembers -FolderPath $FilePath    
+        #Write-Error "Certificat not found" -Category InvalidResult
+        Write-Log -Message "Certificat not found" -LogFile $LogFile -Type "ERROR" -color "Red" -Category InvalidResult
+        exit
     }
-    Write-Host "--> End of AAD Roles export" -ForegroundColor Green 
 }
 
+$TimeStampField=get-date
+#Write-Host "LAW TimeStamp $TimeStampField" -ForegroundColor Cyan
+Write-Log -Message "LAW TimeStamp $TimeStampField" -LogFile $LogFile -Type "INFO" -color "Cyan"
+Write-Log -Message "$env:USERNAME" -LogFile $LogFile -Type "INFO" -color "Cyan"
 
-if (($AzureAD_CA) -or ($All)) {
-    Write-Host "Beginning Conditional Access Policy export" -ForegroundColor Yellow
+# Attempt to establish a connection to Microsoft Graph
+try {    
+    # Verify if the connection was successful by checking the context
+    $MgContext = Get-MgContext
+    if ($null -eq $MgContext) {
+        #Write-Error "Failed to connect to Microsoft Graph" -Category ConnectionError
+        Write-Log -Message "Failed to connect to Microsoft Graph" -LogFile $LogFile -Type "ERROR" -color "Red" -Category ConnectionError
+        exit
+    } else {
+        #Write-Host "Successfully connected to Microsoft Graph" -ForegroundColor Green
+        Write-Log -Message "Successfully connected to Microsoft Graph" -LogFile $LogFile -Type "INFO" -color "Green"
+    }
+} catch {
+    #Write-Error "Error connecting to Microsoft Graph: $_" -Category ConnectionError
+    Write-Log -Message "Error connecting to Microsoft Graph: $_" -LogFile $LogFile -Type "ERROR" -color "Red" -Category ConnectionError
+}
+
+#################
+#Write-Host "Beginning App consents export" -ForegroundColor Yellow
+Write-Log -Message "Beginning App consents export" -LogFile $LogFile -Type "INFO" -color "Yellow"
+$ServicePrincipalIds = (Get-MgServicePrincipal -All).Id
+$i=1
+$total = $ServicePrincipalIds.Count
+$AppConsentObjs = @()
+$AppConsentObj = @()
+ForEach ($ServicePrincipalId in $ServicePrincipalIds) {
+    Write-Progress -Id 0 -Activity "Azure AD Apps Consents Export - $($ServicePrincipalId.DisplayName)" -Status ("Checked {0}/{1} Apps" -f $i++, $Total) -PercentComplete ((($i-1) / $Total) * 100)
+    
+    $percentComplete = [math]::Floor((($i-1) / $Total) * 100)
+
+    # Log progress every 10%
+    if ($percentComplete % 10 -eq 0) {
+        Write-Log -Message "Processing items - $percentComplete%" -LogFile $LogFile -Type "INFO" -color "Yellow"
+    }
+
+    $AppConsentObj=Get-AadAppsConsents -ServicePrincipalid $ServicePrincipalId -TimeStampField $TimeStampField
+    $AppConsentObjs+=$AppConsentObj
+    
+}
+Write-Progress -Id 0 -Activity "Azure AD Apps Consents Export" -Completed
+#Write-Host "--> End of App consents export" -ForegroundColor Green
+Write-Log -Message "--> End of App consents export" -LogFile $LogFile -Type "INFO" -color "Green"
+
+Clear-Content "$FilePath\AADAppsPermissionsV0.1.csv" -Force -ErrorAction SilentlyContinue
+if($CSV){$AppConsentObjs | Export-Csv -Path "$FilePath\AADAppsPermissions.csv" -NoTypeInformation -Force}
+    
+# Specify the name of the record type that you'll be creating
+$LogType = "DashboardAAD_AADAppConsents"
+$json = $AppConsentObjs | ConvertTo-Json
+if($SharedKey){Post-DataToLogAnalytics -customerId $customerId -sharedKey $sharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($json)) -logType $logType -TimeStampField $TimeStampField}
+#################
+
+#################
+#Write-Host "Beginning AAD Roles export" -ForegroundColor Yellow
+Write-Log -Message "Beginning AAD Roles export" -LogFile $LogFile -Type "INFO" -color "Yellow"
+$AADTenantLicence = ""
+
+$AzureADLicenceSKUs = Get-MgSubscribedSku
+foreach ($AzureADLicenceSKU in $AzureADLicenceSKUs) {
+    foreach ($plan in $AzureADLicenceSKU.ServicePlans) {
+        if ($plan.ServicePlanName -eq "AAD_PREMIUM_P2") {
+            $AADTenantLicence = "P2"
+        }
+    }
+}
+
+if ($AADTenantLicence -eq "P2") {
+    #Write-Host "P2 licences detected, use PIM cmdlet to export" -ForegroundColor Gray
+    Write-Log -Message "P2 licences detected, use PIM cmdlet to export" -LogFile $LogFile -Type "INFO" -color "Gray"
+    Get-EntraIDPIMRole -FolderPath $FilePath -customerId $CustomerId -sharedKey $SharedKey
+}
+else {
+    #Write-Host "NO P2 licences detected, use classic cmdlet to export" -ForegroundColor Yellow
+    Write-Log -Message "NO P2 licences detected, use classic cmdlet to export" -LogFile $LogFile -Type "INFO" -color "Yellow"
+    Get-AadRoleMembers -FolderPath $FilePath    
+}
+#Write-Host "--> End of AAD Roles export" -ForegroundColor Green 
+Write-Log -Message "--> End of AAD Roles export" -LogFile $LogFile -Type "INFO" -color "Green"
+#################
+
+#################
+#Write-Host "Beginning Conditional Access Policy export" -ForegroundColor Yellow
+Write-Log -Message "Beginning Conditional Access Policy export" -LogFile $LogFile -Type "INFO" -color "Yellow"
     Get-AzureADCAPolicies -FolderPath $FilePath
-    Write-Host "--> End of Conditional Access Policy export" -ForegroundColor Green
-}
-#>
+#Write-Host "--> End of Conditional Access Policy export" -ForegroundColor Green
+Write-Log -Message "--> End of Conditional Access Policy export" -LogFile $LogFile -Type "INFO" -color "Green"
+#################
+Write-Log -Message "End of LP-RDI export" -LogFile $LogFile -Type "INFO" -color "Green"
+Write-Log -Message " " -LogFile $LogFile -Type "INFO" -color "Green"

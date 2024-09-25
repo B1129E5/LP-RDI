@@ -11,12 +11,13 @@
 
 1. Install Microsoft.Graph Module
 ```powershell
-Install-Module Microsoft.Graph -Scope AllUsers
+Install-Module Microsoft.Graph -Scope AllUsers -Repository PSGallery -Force
+Install-Module Microsoft.Graph.Beta -Scope AllUsers -Repository PSGallery -Force
 ```
 
 2. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
 ```powershell
-Connect-MgGraph -Scopes 'Application.ReadWrite.All'
+Connect-MgGraph -Scopes AppRoleAssignment.ReadWrite.All, Application.ReadWrite.All, DelegatedPermissionGrant.ReadWrite.All
 ```
 If asked, enter your credentials
 
@@ -64,7 +65,18 @@ $secret = Add-MgApplicationPassword -applicationId $appObjectId -PasswordCredent
 $secret.SecretText
 
 ```
+## Create a Certificate for the App
+1. Execute these following commands to generate a certificate (needed if you use RDI scheduled task). 
+**Export your certificate without the private key and Import it in your App**
 
+```powershell
+$cert = New-SelfSignedCertificate -CertStoreLocation "cert:\CurrentUser\My" `
+  -Subject "CN=MSGraph_RDIApps" `
+  -KeySpec KeyExchange `
+  -KeyLength 2048
+$keyValue = [System.Convert]::ToBase64String($cert.GetRawCertData()) 
+
+```
 
 ## Create the Automation Account
 1. In the Azure Portal (https://portal.azure.com) search Automation Account
