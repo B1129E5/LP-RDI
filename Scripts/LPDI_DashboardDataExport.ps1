@@ -50,7 +50,7 @@ Version 3.0
 param (
         [string]$FilePath="C:\Azure\LPDI", # + $(Get-Date -Format "yyyy-MM-dd") + "\",
         [switch]$CSV=$true,
-        [switch]$MI=$true
+        [switch]$MI
     )
 
 function Get-AadAppsConsents {
@@ -1613,7 +1613,7 @@ else {
 
 Write-Log -Message "Connecting to Entra ID" -LogFile $LogFile -Type "INFO" -color "Cyan"
 
-if ($MI) {
+if (!$ClientID) {
         $result = Connect-MgGraph -identity
         Write-Log -Message "Connect with MI - $result" -LogFile $LogFile -Type "INFO" -color "Green"
 }
