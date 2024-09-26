@@ -17,7 +17,7 @@ Install-Module Microsoft.Graph.Beta -Scope AllUsers -Repository PSGallery -Force
 
 2. Execute this script with at least 'Application.ReadWrite.All' permission on the Microsoft Graph PowerShell. This will create a app name RDIApp with required permission for the script RDI
 ```powershell
-Connect-MgGraph -Scopes 'Application.ReadWrite.All'
+Connect-MgGraph -Scopes AppRoleAssignment.ReadWrite.All, Application.ReadWrite.All, DelegatedPermissionGrant.ReadWrite.All
 ```
 If asked, enter your credentials
 
