@@ -38,7 +38,7 @@ function Get-AzureADCAPolicies {
         [string]$DisplayName
         [datetime]$CreatedDateTime                                     
         [datetime]$ModifiedDateTime                                    
-        [string]$State
+        [bool]$State
         #Conditions
         [string]$IncludeUsers
         [string]$IncludeGuestsOrExternalUsers    
@@ -923,7 +923,7 @@ function Write-Log {
 #### Enter your environment information
 ########################################################
 #Replace with your App ID
-    $tenantId       = 'eda50e56-2453-45a2-8909-9138efe4ebca'
+    $tenantId       = 'xxxxxx'
 ########################################################
 
 $LogFile = "$FilePath\CAPExport.log"
@@ -963,7 +963,7 @@ else {
 }
 
 Write-Log -Message "Connecting to Entra ID" -LogFile $LogFile -Type "INFO" -color "Cyan"
-#Disconnect-MgGraph
+
 $result = Connect-MgGraph -Scopes "Policy.Read.All,Directory.Read.All"
 Write-Log -Message "Connecting to Entra ID - $result" -LogFile $LogFile -Type "INFO" -color "Green"
 

@@ -31,9 +31,7 @@ Version 1.0
  even if Microsoft has been advised of the possibility of such damages.
 =============================================================================
                  - RELEASE NOTES -
- v1.0   2020.12.10 - Script creation
- v1.1   2022.03.22 - Correct bug with cTimeStampField for Tenant with P1 license
- 
+ v2.0   2024.10.01 - New Realase
 =============================================================================
 #>
 
