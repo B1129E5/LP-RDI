@@ -1562,11 +1562,11 @@ function Write-Log {
 #### Enter your environment information
 ########################################################
 #Replace with your App ID
-    $tenantId       = 'eda50e56-2453-45a2-8909-9138efe4ebca'
+    $tenantId       = ''
 # Replace with your Workspace ID
-    $CustomerId     = "e15e150e-179a-4c47-ae6b-4d975ea8270c"  
+    $CustomerId     = ""  
 # Replace with your Primary Key (Let empty if you dont have Log Analytics)
-    $SharedKey      = "LAiBbzuQ6XbYglNPe9oTsySnETjnoF9az95jFch+Blqnf/iMtiNZ/GC97X604Vo9B7GSALS2U+tWn7bQDJkUoA=="
+    $SharedKey      = ""
 
 #### If you don't use Managed Identity
     $ClientID       = ""
