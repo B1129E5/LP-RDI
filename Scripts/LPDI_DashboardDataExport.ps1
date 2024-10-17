@@ -251,7 +251,7 @@ Function ObjPIMPermission {
       "RoleScope"                           = (&{if ($role.DirectoryScopeId -eq "/") {"/"} elseif ($role.DirectoryScopeId -like "/administrativeUnits*") {"Administrative Unit"} else {"Application"}})
     }
     Return $obj
-  }
+}
 function Get-EntraIDPIMRole {
 
     Param (
