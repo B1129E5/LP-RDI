@@ -1,0 +1,384 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dataCollectionEndpointName": {
+            "type": "string",
+            "defaultValue": "dce-lpdi",
+            "metadata": {
+                "description": "Specifies the name of the Data Collection Endpoint to create."
+            }
+        },
+        "dataCollectionRuleName": {
+            "type": "string",
+            "defaultValue": "dcr-lpdi",
+            "metadata": {
+                "description": "Specifies the name of the Data Collection Rule to create."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Specifies the location in which to create the Data Collection Rule."
+            }
+        },
+        "workspaceId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/5687c0c2-9f2c-4a6a-81f1-bbc347b748fc/resourceGroups/rg-lpdi/providers/Microsoft.OperationalInsights/workspaces/law-lpdi",
+            "metadata": {
+                "description": "Specifies the Azure resource ID of the Log Analytics workspace to use."
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/dataCollectionEndpoints",
+            "apiVersion": "2023-03-11",
+            "name": "[parameters('dataCollectionEndpointName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "networkAcls": {
+                    "publicNetworkAccess": "Enabled"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Insights/dataCollectionRules",
+            "apiVersion": "2023-03-11",
+            "name": "[parameters('dataCollectionRuleName')]",
+            "location": "[parameters('location')]",
+            "kind": "Direct",
+            "dependsOn": [
+                "[resourceId('Microsoft.Insights/dataCollectionEndpoints', parameters('dataCollectionEndpointName'))]"
+            ],
+            "properties": {
+                "dataCollectionEndpointId": "[resourceId('Microsoft.Insights/dataCollectionEndpoints', parameters('dataCollectionEndpointName'))]",
+                "streamDeclarations": {
+                    "Custom-DashboardAAD_AADRoles_CL": {
+                        "columns": [
+                            {
+                                "name": "TimeGenerated",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "AzureAD_RoleName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_DisplayName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_UPN",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_ObjectId",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_Type",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_DirSync",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "Account_PIMRoleAssignmentState",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_RoleMemberType",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_RoleStartDateTime",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_RoleEndDateTime",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_GroupName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_LastSignins",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_MFA",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_Methods",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_PhoneNumber",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_AlternativePhoneNumber",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_CreationDate",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_RefreshTokensValid",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_ExcServices",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_TeamsServices",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_SharepointServices",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_YammerServices",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_onPremisesDistinguishedName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "cTimeStampField",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "IsBuiltIn",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "IsPrivileged",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "RolePermissions",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Account_NI_LastSignins",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_Success_LastSignins",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Account_Enabled",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "RoleScope",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "Custom-DashboardAAD_CA_CL": {
+                        "columns": [
+                            {
+                                "name": "TimeGenerated",
+                                "type": "datetime"
+                            },
+                            {
+                                "name": "Id",
+                                "type": "string"
+                            },
+                            {
+                                "name": "DisplayName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "CreatedDateTime",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ModifiedDateTime",
+                                "type": "string"
+                            },
+                            {
+                                "name": "State",
+                                "type": "string"
+                            },
+                            {
+                                "name": "SignInRiskLevels",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "UserRiskLevels",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeGroups",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ExcludeGroups",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeRoles",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ExcludeRoles",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeUsers",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ExcludeUsers",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeApplications",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ExcludeApplications",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeProtectionLevels",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeUserActions",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncludeDeviceStates",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ExcludeDeviceStates",
+                                "type": "string"
+                            },
+                            {
+                                "name": "deviceStates",
+                                "type": "string"
+                            },
+                            {
+                                "name": "includeLocations",
+                                "type": "string"
+                            },
+                            {
+                                "name": "excludeLocations",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ClientAppTypes",
+                                "type": "string"
+                            },
+                            {
+                                "name": "includePlatforms",
+                                "type": "string"
+                            },
+                            {
+                                "name": "excludePlatforms",
+                                "type": "string"
+                            },
+                            {
+                                "name": "GrantControls_Operator",
+                                "type": "string"
+                            },
+                            {
+                                "name": "GrantControls_BuiltInControls",
+                                "type": "string"
+                            },
+                            {
+                                "name": "CustomAuthenticationFactors",
+                                "type": "string"
+                            },
+                            {
+                                "name": "TermsOfUse",
+                                "type": "string"
+                            },
+                            {
+                                "name": "ApplicationEnforcedRestrictions",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "cloudAppSecurityType",
+                                "type": "real"
+                            },
+                            {
+                                "name": "CloudAppSecurity_isEnabled",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "PersistentBrowser_mode",
+                                "type": "real"
+                            },
+                            {
+                                "name": "PersistentBrowser_IsEnabled",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "SignInFrequency_value",
+                                "type": "real"
+                            },
+                            {
+                                "name": "SignInFrequency_type",
+                                "type": "real"
+                            },
+                            {
+                                "name": "SignInFrequency_isEnabled",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "cTimeStampField",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                "destinations": {
+                    "logAnalytics": [
+                        {
+                            "workspaceResourceId": "[parameters('workspaceId')]",
+                            "name": "myDestination"
+                        }
+                    ]
+                },
+                "dataFlows": [
+                    {
+                        "streams": [
+                            "Custom-DashboardAAD_AADRoles_CL",
+                            "Custom-DashboardAAD_CA_CL"
+                        ],
+                        "destinations": [
+                            "myDestination"
+                        ]
+                    }
+                ]
+            }
+
+        }
+    ],
+    "outputs": {
+        "dataCollectionEndpointUri": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Insights/dataCollectionEndpoints', parameters('dataCollectionEndpointName'))).logsIngestion.endpoint]"
+        },
+        "dataCollectionRuleImmutableId": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Insights/dataCollectionRules', parameters('dataCollectionRuleName'))).ImmutableId]"
+        }
+    }
+}
