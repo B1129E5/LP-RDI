@@ -1,6 +1,4 @@
 <#
-The script creates report files in the folder:
-- CAPolicies.csv
 
 .NOTES
 Version 3.0
@@ -25,7 +23,7 @@ Version 3.0
 #>
 
 param (
-        [string]$FilePath="C:\Azure\CAPExport" # + $(Get-Date -Format "yyyy-MM-dd") + "\",
+        [string]$FilePath="C:\Azure\AppExport" # + $(Get-Date -Format "yyyy-MM-dd") + "\",
     )
 
 function Get-AadAppsConsents {
